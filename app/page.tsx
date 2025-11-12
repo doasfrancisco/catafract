@@ -12,6 +12,7 @@ export default function Home() {
   const [playbackId, setPlaybackId] = useState<string>('');
 
   const portfolioList: PortfolioList[] = [
+    { playbackId: 'tcjPxqkq7V4RBiqze4LxxVx02agmzSmRCpa2N1iP1wH8', title: 'Kevin Gomez (GDG)' },
     { playbackId: 'Stlg6GslUE6VXRnMjuH2scvri00bWjJ800qlNogLFnUm00', title: 'Grúas Esmy' },
     { playbackId: 'nsLRWpqpdmtYipbB31SrKKbQnWnB1IGzVjnFTVphPvs', title: 'Trascendental' },
     { playbackId: 'NJKfO2Y5AcyeufR7VFpXXxMty0057xzZLO9NMbPK6c02k', title: "Wonder Kids"},

@@ -29,8 +29,8 @@ test("Azure Cosmos DB write", async () => {
     expect(savedItem.type).toBe('verification-test');
 });
 
-// TODO: Remove this test after verifying CI/CD pipeline blocks deployment on failure
-test("Intentional failure test", () => {
-    expect(1 + 1).toBe(4); // This will fail on purpose
-});
+// // TODO: Remove this test after verifying CI/CD pipeline blocks deployment on failure
+// test("Intentional failure test", () => {
+//     expect(1 + 1).toBe(4); // This will fail on purpose
+// });
 

@@ -134,7 +134,7 @@ export default function App() {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to generate image');
+          throw new Error('Failed to generate AI image');
         }
 
         const data = await response.json();
@@ -209,7 +209,7 @@ export default function App() {
             fontWeight: 'bold',
           }}
         >
-          + Upload Node
+          + Upload image
         </button>
         <button
           onClick={addGenerationNode}

@@ -1,0 +1,27 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Run Bun Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install
+      - name: Run tests
+        run: bun test
+        env:
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          AZURE_COSMOS_ENDPOINT: ${{ secrets.AZURE_COSMOS_ENDPOINT }}
+          AZURE_COSMOS_KEY: ${{ secrets.AZURE_COSMOS_KEY }}
+          AZURE_COSMOS_DATABASE: ${{ secrets.AZURE_COSMOS_DATABASE }}
+          AZURE_COSMOS_CONTAINER: ${{ secrets.AZURE_COSMOS_CONTAINER }}

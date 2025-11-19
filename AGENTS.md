@@ -1,0 +1,5 @@
+- Use `bun add` instead of `npm install`
+- Use `bunx` instead of `npx`
+- Use `bun run dev` instead of `npm run dev`
+- All test files follow the pattern `*.test.ts`
+- Tests are ran using `bun test`

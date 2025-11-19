@@ -46,7 +46,7 @@ export default function Home() {
             onClick={() => signIn('google', { callbackUrl: '/canvas' })}
             className="bg-white text-black px-8 py-3 rounded-full font-semibold hover:bg-gray-200 transition-colors"
           >
-            Sign In to Create
+            Get started
           </button>
         </div>
 

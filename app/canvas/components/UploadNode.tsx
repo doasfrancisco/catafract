@@ -1,47 +1,69 @@
 'use client';
 
-import { memo, useCallback, ChangeEvent } from 'react';
+import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { ImageNode } from '../types';
 
 function UploadNode({ data, id }: NodeProps<ImageNode>) {
-  const handleFileUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        // Update node data with the uploaded image
-        data.image = result;
-        // Force re-render by triggering a state update in parent
-        window.dispatchEvent(new CustomEvent('nodeDataUpdate', {
-          detail: { nodeId: id, data: { ...data, image: result } }
-        }));
-      };
-      reader.readAsDataURL(file);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // Create FormData to send the file
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Upload to Azure via API
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const { url } = await response.json();
+
+      // Emit event to update parent state with Azure URL
+      const event = new CustomEvent('nodeDataUpdate', {
+        detail: {
+          nodeId: id,
+          data: { image: url },
+        },
+      });
+      window.dispatchEvent(event);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Failed to upload image. Please try again.');
     }
-  }, [data, id]);
+  };
 
   return (
-    <div style={{
-      padding: '10px',
-      border: '2px solid #3b82f6',
-      borderRadius: '8px',
-      background: 'white',
-      minWidth: '200px',
-    }}>
-      <div style={{
-        fontWeight: 'bold',
-        marginBottom: '10px',
-        color: '#3b82f6',
-      }}>
+    <div
+      style={{
+        padding: '10px',
+        border: '2px solid #3b82f6',
+        borderRadius: '8px',
+        background: 'white',
+        minWidth: '200px',
+      }}
+    >
+      <div
+        style={{
+          fontWeight: 'bold',
+          marginBottom: '10px',
+          color: '#3b82f6',
+        }}
+      >
         Upload Image
       </div>
 
       <input
         type="file"
         accept="image/*"
-        onChange={handleFileUpload}
+        onChange={handleFileChange}
         style={{
           marginBottom: '10px',
           fontSize: '12px',

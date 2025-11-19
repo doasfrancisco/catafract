@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@azure/cosmos": "^4.7.0",
+    "@azure/storage-blob": "^12.29.1",
     "@google/genai": "^1.29.1",
     "@mux/mux-node": "^12.8.0",
     "@mux/mux-player-react": "^3.8.0",

@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
+import { getServerSession } from 'next-auth';
+import { uploadToBlob, saveToCosmos } from '@/lib/azure';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await getServerSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { images, prompt } = await request.json();
 
     if (!images || images.length === 0) {
@@ -97,8 +105,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Upload generated image to Azure Blob Storage
+    const base64Data = generatedImageBase64.replace(/^data:image\/\w+;base64,/, '');
+    const mimeMatch = generatedImageBase64.match(/^data:(image\/\w+);base64,/);
+    const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+    const imageBuffer = Buffer.from(base64Data, 'base64');
+
+    const timestamp = Date.now();
+    const filename = `generated-${timestamp}.png`;
+    const imageUrl = await uploadToBlob(imageBuffer, filename, mimeType);
+
+    // Save metadata to Cosmos DB
+    await saveToCosmos({
+      id: `gen-${timestamp}`,
+      userId: session.user?.email || 'anonymous',
+      prompt: prompt,
+      inputImages: images, // Store as base64 or URLs depending on your setup
+      outputImageUrl: imageUrl,
+      createdAt: new Date().toISOString(),
+    });
+
     return NextResponse.json({
-      image: generatedImageBase64,
+      image: generatedImageBase64, // Still return base64 for immediate display
+      imageUrl: imageUrl, // Also return the Azure URL
       text: generatedText,
     });
 
@@ -113,3 +142,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

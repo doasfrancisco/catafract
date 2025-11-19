@@ -4,6 +4,7 @@
 - [ ] Add a simple Calendly link to contact me
 - [ ] When cliking a video a modal should open explaining the company and story of the video
 - [ ] Add payment gateway
+- [ ] Add analytics
 
 ### FEEDBACK
 1) Pq en ingles si los ejemplos son recontra latinos?

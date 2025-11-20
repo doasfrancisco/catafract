@@ -42,12 +42,31 @@ export async function POST(request: NextRequest) {
 
     // Add all input images
     for (const imageData of images) {
-      // Remove data URL prefix if present to get pure base64
-      const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
+      let base64Data = '';
+      let mimeType = 'image/png';
 
-      // Detect mime type from data URL
-      const mimeMatch = imageData.match(/^data:(image\/\w+);base64,/);
-      const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+      if (imageData.startsWith('http')) {
+        try {
+          const imageRes = await fetch(imageData);
+          if (!imageRes.ok) throw new Error(`Failed to fetch image: ${imageData}`);
+          const arrayBuffer = await imageRes.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          base64Data = buffer.toString('base64');
+          mimeType = imageRes.headers.get('content-type') || 'image/png';
+        } catch (error) {
+          console.error('Error fetching input image:', error);
+          continue; // Skip failed images or handle error appropriately
+        }
+      } else {
+        // Remove data URL prefix if present to get pure base64
+        base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
+
+        // Detect mime type from data URL
+        const mimeMatch = imageData.match(/^data:(image\/\w+);base64,/);
+        if (mimeMatch) {
+          mimeType = mimeMatch[1];
+        }
+      }
 
       contents.push({
         inlineData: {

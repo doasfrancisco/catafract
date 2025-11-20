@@ -19,6 +19,7 @@ import '@xyflow/react/dist/style.css';
 import UploadNode from './components/UploadNode';
 import GenerationNode from './components/GenerationNode';
 import { ImageNode, ImageNodeData } from './types';
+import { analytics } from '@/lib/mixpanel';
 
 const nodeTypes: NodeTypes = {
   upload: UploadNode,
@@ -61,6 +62,7 @@ export default function App() {
     };
     setNodes((nds) => [...nds, newNode]);
     setNodeId((prev) => prev + 1);
+    analytics.trackNodeAdded('upload');
   }, [nodeId]);
 
   // Add Generation Node
@@ -74,6 +76,7 @@ export default function App() {
     };
     setNodes((nds) => [...nds, newNode]);
     setNodeId((prev) => prev + 1);
+    analytics.trackNodeAdded('generation');
   }, [nodeId]);
 
   // Handle node data updates
@@ -104,11 +107,15 @@ export default function App() {
         const data = await res.json();
         setIsPro(data.isPro);
         setUserData(data);
+        if (data.id) {
+          analytics.identify(data.id);
+        }
       } catch (e) {
         console.error('Failed to check pro status', e);
       }
     };
     checkStatus();
+    analytics.trackCanvasLoaded();
   }, []);
 
   // Handle image generation
@@ -143,6 +150,12 @@ export default function App() {
           )
         );
 
+        analytics.trackImageGeneration({
+          prompt: prompt,
+          inputNodeCount: inputImages.length,
+          status: 'started',
+        });
+
         // Call API to generate image
         const response = await fetch('/api/generate-image', {
           method: 'POST',
@@ -164,6 +177,12 @@ export default function App() {
               : node
           )
         );
+
+        analytics.trackImageGeneration({
+          prompt: prompt,
+          inputNodeCount: inputImages.length,
+          status: 'success',
+        });
       } catch (error) {
         console.error('Error generating image:', error);
         alert('Failed to generate image. Check console for details.');
@@ -176,6 +195,12 @@ export default function App() {
               : node
           )
         );
+
+        analytics.trackImageGeneration({
+          prompt: prompt,
+          inputNodeCount: inputImages.length,
+          status: 'failure',
+        });
       }
     };
 
@@ -198,6 +223,7 @@ export default function App() {
   }
 
   const handleUpgrade = () => {
+    analytics.trackUpgradeClicked(isPro);
     if (isPro) {
       window.location.href = '/api/portal';
     } else {
@@ -207,8 +233,6 @@ export default function App() {
 
       const params = new URLSearchParams();
       params.append('products', productId);
-
-      console.log(userData);
 
       if (userData?.id) params.append('customerExternalId', userData.id);
       if (userData?.email) params.append('customerEmail', userData.email);

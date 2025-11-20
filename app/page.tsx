@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
+
+import { analytics } from '@/lib/mixpanel';
 import VideoPlayer from './components/VideoPlayer';
 
 type PortfolioList = {
@@ -19,6 +21,10 @@ export default function Home() {
     { playbackId: 'NJKfO2Y5AcyeufR7VFpXXxMty0057xzZLO9NMbPK6c02k', title: "Wonder Kids" },
     { playbackId: 'T200mP1l00d8BMdtXXghxhdaguAsS7daPeSir02ewcpsJM', title: 'Magical Book' },
   ];
+
+  useEffect(() => {
+    analytics.ensureIdentity();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">

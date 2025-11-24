@@ -79,6 +79,13 @@ export const analytics = {
         });
     },
 
+    trackProjectsLoaded: (userId?: string) => {
+        if (!MIXPANEL_TOKEN) return;
+        mixpanel.track('Projects Loaded', {
+            user_id: userId,
+        });
+    },
+
     trackCanvasLoaded: (userId?: string) => {
         if (!MIXPANEL_TOKEN) return;
         mixpanel.track('Canvas Loaded', {

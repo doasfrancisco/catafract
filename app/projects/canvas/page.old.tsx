@@ -28,8 +28,6 @@ const nodeTypes: NodeTypes = {
 
 export default function App() {
   const { data: session, status } = useSession();
-  const [isPro, setIsPro] = useState(false);
-  const [userData, setUserData] = useState<{ id?: string; email?: string; name?: string } | null>(null);
   const router = useRouter();
   const [nodes, setNodes] = useState<ImageNode[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -101,20 +99,6 @@ export default function App() {
 
 
   useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const res = await fetch('/api/user/status');
-        const data = await res.json();
-        setIsPro(data.isPro);
-        setUserData(data);
-        if (data.id) {
-          analytics.identify(data.id);
-        }
-      } catch (e) {
-        console.error('Failed to check pro status', e);
-      }
-    };
-    checkStatus();
     analytics.trackCanvasLoaded();
   }, []);
 
@@ -222,26 +206,6 @@ export default function App() {
     return null;
   }
 
-  const handleUpgrade = () => {
-    analytics.trackUpgradeClicked(isPro);
-    if (isPro) {
-      window.location.href = '/api/portal';
-    } else {
-      // Replace with your actual product ID or just link to checkout
-      // If you have a specific product ID, add ?products=PRODUCT_ID
-      const productId = 'e1c52c1a-e8e0-4340-bda2-7cfb368f74ae';
-
-      const params = new URLSearchParams();
-      params.append('products', productId);
-
-      if (userData?.id) params.append('customerExternalId', userData.id);
-      if (userData?.email) params.append('customerEmail', userData.email);
-      if (userData?.name) params.append('customerName', userData.name);
-
-      window.location.href = `/api/checkout?${params.toString()}`;
-    }
-  };
-
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       {/* Toolbar */}
@@ -286,24 +250,6 @@ export default function App() {
           }}
         >
           + Generation Node
-        </button>
-        <button
-          onClick={handleUpgrade}
-          disabled={isPro}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: isPro ? '#10b981' : '#f59e0b', // Green for Pro, Amber for Upgrade
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-          }}
-        >
-          {isPro ? '✨ Pro' : '⚡ Upgrade'}
         </button>
       </div>
 

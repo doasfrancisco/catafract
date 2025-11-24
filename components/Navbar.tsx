@@ -35,7 +35,7 @@ export function Navbar() {
 
             <div className="flex items-center gap-4">
                 <Link
-                    href="/signup"
+                    href="/login"
                     className="text-sm font-medium text-zinc-600 hover:text-black dark:text-zinc-300 dark:hover:text-white transition-colors"
                 >
                     Log in
@@ -44,7 +44,7 @@ export function Navbar() {
                     asChild
                     className="bg-black text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 rounded-lg px-6"
                 >
-                    <Link href="/signup">
+                    <Link href="/login">
                         Sign Up
                     </Link>
                 </Button>

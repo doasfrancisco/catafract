@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { signIn } from 'next-auth/react';
 
-export default function SignupPage() {
+export default function LoginPage() {
     return (
         <div className="relative min-h-screen flex bg-white text-black font-sans">
             <div className="absolute inset-0 w-full h-full pointer-events-none">
@@ -62,7 +62,7 @@ export default function SignupPage() {
                     <div className="space-y-4">
                         <button
                             className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-lg bg-gray-100 hover:bg-gray-50 transition-colors hover:cursor-pointer"
-                            onClick={() => signIn('google', { callbackUrl: '/canvas' })}
+                            onClick={() => signIn('google', { callbackUrl: '/projects' })}
                         >
                             {/* Google Icon SVG */}
                             <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

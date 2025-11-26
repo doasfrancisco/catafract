@@ -37,12 +37,59 @@ import {
     Undo,
     Redo,
     ArrowLeft,
+    Download,
+    Star,
 } from "lucide-react";
 
 const nodeTypes: NodeTypes = {
     upload: UploadNode,
     generation: GenerationNode,
 };
+
+function NodeMenuBar({ cursorInfo }: { cursorInfo: { nodeId: string, xScreen: number, yScreen: number } }) {
+    const { getNode } = useReactFlow();
+
+    const onDownloadClick = async (nodeId: string) => {
+        const node = getNode(nodeId);
+        if (node && node.data.image) {
+            // If this worked as intented when generating image. Maybe i'm doing something here that's quite inneficient
+            const response = await fetch(node.data.image as string);
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `image-${nodeId}.jpg`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+    };
+
+    return (
+        <div
+            className="absolute bg-[#FDFCF8] rounded-xl shadow-xl border border-gray-200 w-64 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100"
+            style={{ top: cursorInfo.yScreen, left: cursorInfo.xScreen }}
+        >
+            <div className="p-2 space-y-1">
+                {!!getNode(cursorInfo.nodeId)?.data.image && (
+                    <button
+                        onClick={async () => await onDownloadClick(cursorInfo.nodeId)}
+                        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-100 rounded-lg text-left transition-colors text-gray-700"
+                    >
+                        <Download className="w-4 h-4" />
+                        <span className="text-sm font-medium">Download</span>
+                    </button>
+                )}
+                <button
+                    onClick={() => (console.log('Favorite'))}
+                    className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-100 rounded-lg text-left transition-colors text-gray-700"
+                >
+                    <Star className="w-4 h-4" />
+                    <span className="text-sm font-medium">Favorite</span>
+                </button>
+            </div>
+        </div>
+    );
+}
 
 function Canvas() {
     const { data: session, status } = useSession();
@@ -54,7 +101,9 @@ function Canvas() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [cursorInfo, setCursorInfo] = useState({
-        isRightClick: false,
+        isRightClickCanvas: false,
+        isRightClickNode: false,
+        nodeId: '',
         xScreen: 0,
         yScreen: 0,
         xFlow: 0,
@@ -256,11 +305,27 @@ function Canvas() {
         }
     }, [status, router]);
 
-    const handleContextMenu = useCallback((e: ReactMouseEvent) => {
+    const handleContextMenu = useCallback((e: MouseEvent | ReactMouseEvent) => {
         e.preventDefault();
         const flowPosition = screenToFlowPosition({ x: e.clientX, y: e.clientY });
         setCursorInfo({
-            isRightClick: true,
+            ...cursorInfo,
+            isRightClickCanvas: true,
+            isRightClickNode: false,
+            xScreen: e.clientX,
+            yScreen: e.clientY,
+            xFlow: flowPosition.x,
+            yFlow: flowPosition.y
+        });
+    }, []);
+
+    const handleNodeContextMenu = useCallback((e: ReactMouseEvent, node: ImageNode) => {
+        e.preventDefault();
+        const flowPosition = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        setCursorInfo({
+            isRightClickCanvas: false,
+            isRightClickNode: true,
+            nodeId: node.id,
             xScreen: e.clientX,
             yScreen: e.clientY,
             xFlow: flowPosition.x,
@@ -269,13 +334,35 @@ function Canvas() {
     }, []);
 
     const onCanvasClick = useCallback(() => {
-        if (cursorInfo.isRightClick) {
-            setCursorInfo({ isRightClick: false, xScreen: 0, yScreen: 0, xFlow: 0, yFlow: 0 });
+        if (cursorInfo.isRightClickCanvas || cursorInfo.isRightClickNode) {
+            setCursorInfo({
+                ...cursorInfo,
+                isRightClickCanvas: false,
+                isRightClickNode: false,
+                xScreen: 0, yScreen: 0, xFlow: 0, yFlow: 0
+            });
         }
         if (showProjectMenu) {
             setShowProjectMenu(false);
         }
     }, [cursorInfo, showProjectMenu]);
+
+    const onDownloadClick = (nodeId: string) => {
+        const node = nodes.find((node) => node.id === nodeId);
+        if (node && node.data.image) {
+            const link = document.createElement('a');
+            link.href = node.data.image;
+            link.download = `image-${node.id}.jpg`;
+            link.click();
+        }
+
+        setCursorInfo({
+            ...cursorInfo,
+            isRightClickCanvas: false,
+            isRightClickNode: false,
+            xScreen: 0, yScreen: 0, xFlow: 0, yFlow: 0
+        });
+    };
 
     if (status === 'loading') {
         return <div className="flex items-center justify-center h-screen">Loading...</div>;
@@ -371,7 +458,6 @@ function Canvas() {
             {/* Main Canvas Area (Interactive for Context Menu) */}
             <div
                 className="w-full h-full"
-                onContextMenu={handleContextMenu}
                 onClick={onCanvasClick}
             >
                 <ReactFlow
@@ -379,6 +465,8 @@ function Canvas() {
                     edges={edges}
                     onNodesChange={onNodesChange}
                     onEdgesChange={onEdgesChange}
+                    onPaneContextMenu={handleContextMenu}
+                    onNodeContextMenu={handleNodeContextMenu}
                     onConnect={onConnect}
                     nodeTypes={nodeTypes}
                     fitView
@@ -387,7 +475,7 @@ function Canvas() {
             </div>
 
             {/* Context Menu */}
-            {cursorInfo.isRightClick && (
+            {cursorInfo.isRightClickCanvas && (
                 <div
                     className="absolute bg-[#FDFCF8] rounded-xl shadow-xl border border-gray-200 w-64 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100"
                     style={{ top: cursorInfo.yScreen, left: cursorInfo.xScreen }}
@@ -396,7 +484,12 @@ function Canvas() {
                         <button
                             onClick={() => {
                                 fileInputRef.current?.click();
-                                setCursorInfo({ isRightClick: false, xScreen: 0, yScreen: 0, xFlow: 0, yFlow: 0 });
+                                setCursorInfo({
+                                    ...cursorInfo,
+                                    isRightClickCanvas: false,
+                                    isRightClickNode: false,
+                                    xScreen: 0, yScreen: 0, xFlow: 0, yFlow: 0
+                                });
                             }}
                             className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-100 rounded-lg text-left transition-colors text-gray-700"
                         >
@@ -415,7 +508,12 @@ function Canvas() {
                             <button
                                 onClick={() => {
                                     addGenerationNode(cursorInfo.xFlow, cursorInfo.yFlow);
-                                    setCursorInfo({ isRightClick: false, xScreen: 0, yScreen: 0, xFlow: 0, yFlow: 0 });
+                                    setCursorInfo({
+                                        ...cursorInfo,
+                                        isRightClickCanvas: false,
+                                        isRightClickNode: false,
+                                        xScreen: 0, yScreen: 0, xFlow: 0, yFlow: 0
+                                    });
                                 }}
                                 className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-100 rounded-lg text-left transition-colors text-gray-700"
                             >
@@ -427,6 +525,10 @@ function Canvas() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {cursorInfo.isRightClickNode && (
+                <NodeMenuBar cursorInfo={cursorInfo} />
             )}
         </div>
     );

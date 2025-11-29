@@ -16,7 +16,9 @@ export default function Home() {
       </div>
 
       <div className="relative z-10">
-        <Navbar />
+        <div className="hidden lg:block">
+          <Navbar />
+        </div>
         <main className="flex flex-col items-center justify-center">
           <Hero />
         </main>

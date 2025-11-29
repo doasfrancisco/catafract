@@ -33,7 +33,7 @@ export function Navbar() {
                 </Link>
             </div> */}
 
-            <div className="flex items-center gap-4">
+            {/* <div className="flex items-center gap-4">
                 <Link
                     href="/login"
                     className="text-sm font-medium text-zinc-600 hover:text-black dark:text-zinc-300 dark:hover:text-white transition-colors"
@@ -48,7 +48,7 @@ export function Navbar() {
                         Sign Up
                     </Link>
                 </Button>
-            </div>
+            </div> */}
         </nav>
     );
 }

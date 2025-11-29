@@ -33,6 +33,15 @@ export async function saveToCosmos(item: any) {
   return resource;
 }
 
+export async function createUser(user: any) {
+  const database = cosmosClient.database(databaseName);
+  const container = database.container(usersContainerId);
+
+  const newUser = { ...user, id: crypto.randomUUID() }
+  const { resource } = await container.items.create(newUser);
+  return resource;
+}
+
 export async function getUser(email: string) {
   const database = cosmosClient.database(databaseName);
   const container = database.container(usersContainerId);

@@ -1,40 +1,35 @@
 'use client';
 
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { analytics } from '@/lib/mixpanel';
+import { useUserStore } from '@/lib/stores/useUserStore';
 
 import { Search, Plus, Workflow, Home, Image as ImageIcon, Video, Wand2, PenTool, Type, Folder } from "lucide-react";
+import { useRouter } from 'next/navigation'
 
 export default function ProjectsPage() {
     const { data: session, status } = useSession();
-    const [isPro, setIsPro] = useState(false);
-    const [userData, setUserData] = useState<{ id?: string; email?: string; name?: string } | null>(null);
+    const { userData, isLoading, setUserData } = useUserStore();
+    const router = useRouter();
 
     useEffect(() => {
-        const checkStatus = async () => {
-            try {
-                const res = await fetch('/api/user/status');
-                const data = await res.json();
+        if (!isLoading) {
+            analytics.trackProjectsLoaded(userData!.id);
+        }
+    }, [userData]);
 
-                setIsPro(data.isPro);
-                setUserData(data);
-                if (data.id) {
-                    analytics.identify(data.id);
-                }
-            } catch (e) {
-                console.error('Failed to check pro status', e);
-            }
-        };
-        checkStatus();
-        analytics.trackProjectsLoaded();
-    }, []);
+    if (status === 'loading' || isLoading) {
+        return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    }
+    if (!session) {
+        redirect('/login');
+    }
 
     const handleUpgrade = () => {
-        analytics.trackUpgradeClicked(isPro);
-        if (isPro) {
+        // analytics.trackUpgradeClicked(isPro);
+        if (userData?.isPro) {
             window.location.href = '/api/portal';
         } else {
             // Replace with your actual product ID or just link to checkout
@@ -51,13 +46,6 @@ export default function ProjectsPage() {
             window.location.href = `/api/checkout?${params.toString()}`;
         }
     };
-
-    if (status === 'loading') {
-        return <div className="flex items-center justify-center h-screen">Loading...</div>;
-    }
-    if (!session) {
-        redirect('/login');
-    }
 
     return (
         <div className="min-h-screen bg-[#FDFCF8] text-black font-sans">
@@ -79,17 +67,17 @@ export default function ProjectsPage() {
                 </div> */}
 
                 {/* Right Side */}
-                <div className="flex items-center justify-end gap-4 w-1/3">
-                    {/* <div className="px-3 py-1.5 bg-[#D9D9CD] rounded-full text-xs font-medium text-gray-600">API Waitlist</div> */}
-                    {/* <button className="p-2 hover:bg-gray-100 rounded-full"><Search className="w-4 h-4" /></button> */}
-                    <button
+                {/* <div className="flex items-center justify-end gap-4 w-1/3"> */}
+                {/* <div className="px-3 py-1.5 bg-[#D9D9CD] rounded-full text-xs font-medium text-gray-600">API Waitlist</div> */}
+                {/* <button className="p-2 hover:bg-gray-100 rounded-full"><Search className="w-4 h-4" /></button> */}
+                {/* <button
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                         disabled={isPro}
                         onClick={handleUpgrade}
                     >
                         {isPro ? 'Already Pro' : 'Upgrade New'}
-                    </button>
-                </div>
+                    </button> */}
+                {/* </div> */}
             </div>
 
             {/* Main Content */}
@@ -146,11 +134,14 @@ export default function ProjectsPage() {
                     </div>
 
                     <div className="grid grid-cols-4 gap-6">
-                        <Link href="/projects/canvas" className="aspect-square bg-blue-50/50 border-2 border-dashed border-blue-200 rounded-xl flex flex-col items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-all group">
+                        <button
+                            onClick={() => router.push(`/projects/canvas/${crypto.randomUUID()}`)}
+                            className="aspect-square bg-blue-50/50 border-2 border-dashed border-blue-200 rounded-xl flex flex-col items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-all group hover:cursor-pointer"
+                        >
                             <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                                 <Plus className="w-6 h-6 text-white" />
                             </div>
-                        </Link>
+                        </button>
 
                         {/* Empty slots for alignment if needed, or just leave as is */}
                     </div>

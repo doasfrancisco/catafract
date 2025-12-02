@@ -1,5 +1,5 @@
-import { Navbar } from "@/components/Navbar";
-import { Hero } from "@/components/Hero";
+import { Navbar } from "@/app/Navbar";
+import { Hero } from "@/app/Hero";
 import Image from "next/image";
 
 export default function Home() {

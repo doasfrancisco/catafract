@@ -9,7 +9,7 @@ interface UserData {
 
 interface UserStore {
     userData: UserData | null;
-    isLoading: boolean;
+    isUserLoading: boolean;
     setUserData: (data: UserData | null) => void;
     setLoading: (loading: boolean) => void;
     fetchUserData: () => Promise<void>;
@@ -17,18 +17,18 @@ interface UserStore {
 
 export const useUserStore = create<UserStore>((set) => ({
     userData: null,
-    isLoading: true,
+    isUserLoading: true,
     setUserData: (data) => set({ userData: data }),
-    setLoading: (loading) => set({ isLoading: loading }),
+    setLoading: (loading) => set({ isUserLoading: loading }),
     fetchUserData: async () => {
-        set({ isLoading: true });
+        set({ isUserLoading: true });
         try {
             const response = await fetch('/api/user/');
             const data = await response.json();
-            set({ userData: data, isLoading: false });
+            set({ userData: data, isUserLoading: false });
         } catch (error) {
             console.error('Failed to fetch user data:', error);
-            set({ isLoading: false });
+            set({ isUserLoading: false });
         }
     },
 }));

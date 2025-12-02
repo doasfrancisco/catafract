@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { createProject } from '@/lib/azure';
+import { createProject, getProjects } from '@/lib/azure';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export async function POST(request: NextRequest) {
@@ -29,6 +29,26 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
         }
         return NextResponse.json(newProject, { status: 200 });
+    } catch (error) {
+        console.error('Error fetching user status:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+export async function GET(request: NextRequest) {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user?.email) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    try {
+        const userId = request.nextUrl.searchParams.get('userId');
+        if (!userId) {
+            return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+        }
+        const projects = await getProjects(userId);
+        return NextResponse.json(projects, { status: 200 });
     } catch (error) {
         console.error('Error fetching user status:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

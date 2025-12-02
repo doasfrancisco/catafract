@@ -5,22 +5,28 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { analytics } from '@/lib/mixpanel';
 import { useUserStore } from '@/app/store/useUserStore';
+import { useProjectStore } from '@/app/projects/store/useProjectStore';
 
 import { Search, Plus, Workflow, Home, Image as ImageIcon, Video, Wand2, PenTool, Type, Folder } from "lucide-react";
 import { useRouter } from 'next/navigation'
 
 export default function ProjectsPage() {
     const { data: session, status } = useSession();
-    const { userData, isLoading, setUserData } = useUserStore();
+    const { userData, isUserLoading } = useUserStore();
+    const { projectData, isProjectLoading, fetchProjectData } = useProjectStore();
     const router = useRouter();
 
+
+
     useEffect(() => {
-        if (!isLoading) {
+        if (!isUserLoading && isProjectLoading) {
+            fetchProjectData(userData?.id!);
             analytics.trackProjectsLoaded(userData!.id);
         }
-    }, [userData]);
+    }, [userData, projectData]);
 
-    if (status === 'loading' || isLoading) {
+
+    if (status === 'loading' || isUserLoading) {
         return <div className="flex items-center justify-center h-screen">Loading...</div>;
     }
     if (!session) {
@@ -55,7 +61,7 @@ export default function ProjectsPage() {
             },
             body: JSON.stringify({
                 userId: userData?.id,
-                name: "New Project"
+                name: "Untitled Project"
             }),
         });
         const project = await response.json();
@@ -148,18 +154,35 @@ export default function ProjectsPage() {
                         </div> */}
                     </div>
 
-                    <div className="grid grid-cols-4 gap-6">
-                        <button
-                            onClick={() => createNewProject()}
-                            className="aspect-square bg-blue-50/50 border-2 border-dashed border-blue-200 rounded-xl flex flex-col items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-all group hover:cursor-pointer"
-                        >
-                            <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                                <Plus className="w-6 h-6 text-white" />
-                            </div>
-                        </button>
-
-                        {/* Empty slots for alignment if needed, or just leave as is */}
-                    </div>
+                    {isProjectLoading ? (
+                        <div className="flex items-center justify-center h-screen">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-4 gap-6">
+                            <button
+                                onClick={() => createNewProject()}
+                                className="aspect-square bg-blue-50/50 border-2 border-dashed border-blue-200 rounded-xl flex flex-col items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-all group hover:cursor-pointer"
+                            >
+                                <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                                    <Plus className="w-6 h-6 text-white" />
+                                </div>
+                            </button>
+                            {projectData?.map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => router.push(`/projects/canvas/${item.id}`)}
+                                    className="aspect-square bg-blue-50/50 border-2 border-dashed border-blue-200 rounded-xl flex flex-col items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-all group hover:cursor-pointer"
+                                >
+                                    <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                                        <ImageIcon className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 mb-1">{item.name}</h3>
+                                    <p className="text-xs text-gray-400 font-medium">{item.createdDate!.toLocaleDateString()}</p>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

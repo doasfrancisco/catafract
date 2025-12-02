@@ -99,3 +99,20 @@ export async function createProject(project: any) {
   const { resource } = await container.items.create(project);
   return resource;
 }
+
+export async function getProjects(userId: string) {
+  const database = cosmosClient.database(databaseName);
+  const container = database.container(projectsContainer);
+
+  try {
+    const { resources } = await container.items.query({
+      query: "SELECT * FROM c WHERE c.userId = @userId",
+      parameters: [{ name: "@userId", value: userId }]
+    }).fetchAll();
+
+    return resources;
+  } catch (error) {
+    console.log("Error finding projects:", error);
+    return [];
+  }
+}

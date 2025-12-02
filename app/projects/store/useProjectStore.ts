@@ -1,34 +1,43 @@
 import { create } from 'zustand';
 
-interface UserData {
+interface ProjectData {
     id?: string;
-    email?: string;
+    userId?: string;
     name?: string;
-    isPro?: boolean;
+    createdDate?: Date;
 }
 
-interface UserStore {
-    userData: UserData | null;
-    isLoading: boolean;
-    setUserData: (data: UserData | null) => void;
+interface ProjectStore {
+    projectData: ProjectData[] | null;
+    isProjectLoading: boolean;
+    setProjectData: (data: ProjectData[] | null) => void;
     setLoading: (loading: boolean) => void;
-    fetchUserData: () => Promise<void>;
+    fetchProjectData: (userId: string) => Promise<void>;
 }
 
-export const useUserStore = create<UserStore>((set) => ({
-    userData: null,
-    isLoading: true,
-    setUserData: (data) => set({ userData: data }),
-    setLoading: (loading) => set({ isLoading: loading }),
-    fetchUserData: async () => {
-        set({ isLoading: true });
+export const useProjectStore = create<ProjectStore>((set) => ({
+    projectData: null,
+    isProjectLoading: true,
+    setProjectData: (data) => set({ projectData: data }),
+    setLoading: (loading) => set({ isProjectLoading: loading }),
+    fetchProjectData: async (userId: string) => {
+        set({ isProjectLoading: true });
         try {
-            const response = await fetch('/api/user/');
+            const response = await fetch(`/api/user/project?userId=${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
             const data = await response.json();
-            set({ userData: data, isLoading: false });
+            const projects = data.map((project: ProjectData) => ({
+                ...project,
+                createdDate: new Date(project.createdDate!),
+            }));
+            set({ projectData: projects, isProjectLoading: false });
         } catch (error) {
-            console.error('Failed to fetch user data:', error);
-            set({ isLoading: false });
+            console.error('Failed to fetch project data:', error);
+            set({ isProjectLoading: false });
         }
     },
 }));

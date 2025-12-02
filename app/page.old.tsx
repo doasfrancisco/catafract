@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 
 import { analytics } from '@/lib/mixpanel';
-import VideoPlayer from '../components/VideoPlayer';
+import VideoPlayer from './VideoPlayer_old';
 
 type PortfolioList = {
     playbackId: string;

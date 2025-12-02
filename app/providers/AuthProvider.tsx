@@ -1,6 +1,6 @@
 'use client';
 
-import { useUserStore } from '@/lib/stores/useUserStore';
+import { useUserStore } from '@/app/store/useUserStore';
 import { useEffect } from 'react';
 import { SessionProvider } from "next-auth/react";
 

@@ -43,8 +43,10 @@ export function Hero() {
                             className="h-12 px-8 rounded-lg bg-black text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
                             asChild
                         >
-                            <Link href="https://calendly.com/doasfrancisco/15min">
-                                Schedule a call
+                            {/* <Link href="https://calendly.com/doasfrancisco/15min"> */}
+                            <Link href="/login">
+                                {/* Schedule a call */}
+                                Get started
                             </Link>
                         </Button>
                     </div>
@@ -55,8 +57,8 @@ export function Hero() {
                             className="h-12 w-1/2 px-8 rounded-lg bg-black text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
                             asChild
                         >
-                            <Link href="https://calendly.com/doasfrancisco/15min">
-                                Schedule a call
+                            <Link href="/login">
+                                Get started
                             </Link>
                         </Button>
                     </div>

@@ -11,8 +11,10 @@ const cosmosClient = new CosmosClient(
 
 const containerName = "catafract";
 const databaseName = "catafract";
-const generationsContainerId = "generations";
-const usersContainerId = "users";
+
+const usersContainer = "users";
+const projectsContainer = "projects";
+const generationsContainer = "generations";
 
 export async function uploadToBlob(file: Buffer, filename: string, mimeType: string): Promise<string> {
   const containerClient = blobServiceClient.getContainerClient(containerName);
@@ -27,7 +29,7 @@ export async function uploadToBlob(file: Buffer, filename: string, mimeType: str
 
 export async function saveToCosmos(item: any) {
   const database = cosmosClient.database(databaseName);
-  const container = database.container(generationsContainerId);
+  const container = database.container(generationsContainer);
 
   const { resource } = await container.items.create(item);
   return resource;
@@ -35,7 +37,7 @@ export async function saveToCosmos(item: any) {
 
 export async function createUser(user: any) {
   const database = cosmosClient.database(databaseName);
-  const container = database.container(usersContainerId);
+  const container = database.container(usersContainer);
 
   const newUser = { ...user, id: crypto.randomUUID() }
   const { resource } = await container.items.create(newUser);
@@ -44,7 +46,7 @@ export async function createUser(user: any) {
 
 export async function getUser(email: string) {
   const database = cosmosClient.database(databaseName);
-  const container = database.container(usersContainerId);
+  const container = database.container(usersContainer);
 
   try {
     const { resources } = await container.items.query({
@@ -65,7 +67,7 @@ export async function getUser(email: string) {
 
 export async function updateUser(id: string, data: any) {
   const database = cosmosClient.database(databaseName);
-  const container = database.container(usersContainerId);
+  const container = database.container(usersContainer);
 
   const { resources } = await container.items.query({
     query: "SELECT * FROM c WHERE c.id = @id",
@@ -88,4 +90,12 @@ export async function updateUser(id: string, data: any) {
   }
   console.error(`Cannot create user ${id} without email (partition key)`);
   return null;
+}
+
+export async function createProject(project: any) {
+  const database = cosmosClient.database(databaseName);
+  const container = database.container(projectsContainer);
+
+  const { resource } = await container.items.create(project);
+  return resource;
 }

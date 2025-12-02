@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { analytics } from '@/lib/mixpanel';
-import { useUserStore } from '@/lib/stores/useUserStore';
+import { useUserStore } from '@/app/store/useUserStore';
 
 import { Search, Plus, Workflow, Home, Image as ImageIcon, Video, Wand2, PenTool, Type, Folder } from "lucide-react";
 import { useRouter } from 'next/navigation'
@@ -45,6 +45,21 @@ export default function ProjectsPage() {
 
             window.location.href = `/api/checkout?${params.toString()}`;
         }
+    };
+
+    const createNewProject = async () => {
+        const response = await fetch('/api/user/project', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId: userData?.id,
+                name: "New Project"
+            }),
+        });
+        const project = await response.json();
+        router.push(`/projects/canvas/${project.id}`);
     };
 
     return (
@@ -135,7 +150,7 @@ export default function ProjectsPage() {
 
                     <div className="grid grid-cols-4 gap-6">
                         <button
-                            onClick={() => router.push(`/projects/canvas/${crypto.randomUUID()}`)}
+                            onClick={() => createNewProject()}
                             className="aspect-square bg-blue-50/50 border-2 border-dashed border-blue-200 rounded-xl flex flex-col items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-all group hover:cursor-pointer"
                         >
                             <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">

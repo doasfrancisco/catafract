@@ -9,11 +9,57 @@ function GenerationNode({ data, id }: NodeProps<ImageNode>) {
   const [prompt, setPrompt] = useState(data.prompt || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(30);
+  const [dimensions, setDimensions] = useState({ width: 256, height: 256 });
 
   const handlePromptChange = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
     setPrompt(event.target.value);
     data.prompt = event.target.value;
   }, [data]);
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    let WIDTH = 256;
+    let HEIGHT = 256;
+
+    if (naturalWidth > naturalHeight) {
+      const landscapeRatio = naturalWidth / naturalHeight;
+      if (landscapeRatio >= 1.889) {
+        //2:1
+        WIDTH = 512;
+      } else if (landscapeRatio >= 1.555) {
+        //16:9
+        WIDTH = 455;
+      } else if (landscapeRatio >= 1.167) {
+        //4:3
+        WIDTH = 341;
+      }
+    }
+
+    else if (naturalWidth < naturalHeight) {
+      const portraitRatio = naturalHeight / naturalWidth;
+      if (portraitRatio >= 1.889) {
+        //1:2
+        HEIGHT = 512;
+      } else if (portraitRatio >= 1.639) {
+        //9:16
+        HEIGHT = 455;
+      } else if (portraitRatio >= 1.417) {
+        //2:3
+        HEIGHT = 384;
+      } else if (portraitRatio >= 1.292) {
+        //3:4
+        HEIGHT = 341;
+      } else if (portraitRatio >= 1.125) {
+        //4:5
+        HEIGHT = 320;
+      }
+    }
+
+    setDimensions({
+      width: WIDTH,
+      height: HEIGHT,
+    });
+  };
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -87,8 +133,8 @@ function GenerationNode({ data, id }: NodeProps<ImageNode>) {
           border: isGenerating ? '1px solid #27272a' : '1px solid #e5e7eb',
           borderRadius: '16px',
           background: isGenerating ? '#09090b' : 'white',
-          minWidth: '280px',
-          minHeight: '280px',
+          width: `${dimensions.width}px`,
+          height: `${dimensions.height}px`,
           boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
           overflow: 'hidden',
           display: 'flex',
@@ -125,6 +171,7 @@ function GenerationNode({ data, id }: NodeProps<ImageNode>) {
                     objectFit: 'cover',
                     display: 'block',
                   }}
+                  onLoad={handleImageLoad}
                 />
                 {/* Gradient Overlay for Text Readability */}
                 <div style={{

@@ -1,11 +1,14 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { ImageNode } from '../types';
 import { Image as ImageIcon } from 'lucide-react';
 
 function UploadNode({ data, id }: NodeProps<ImageNode>) {
+  const [dimensions, setDimensions] = useState({ width: 256, height: 256 });
+
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -41,6 +44,51 @@ function UploadNode({ data, id }: NodeProps<ImageNode>) {
     }
   };
 
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    let WIDTH = 256;
+    let HEIGHT = 256;
+
+    if (naturalWidth > naturalHeight) {
+      const landscapeRatio = naturalWidth / naturalHeight;
+      if (landscapeRatio >= 1.889) {
+        //2:1
+        WIDTH = 512;
+      } else if (landscapeRatio >= 1.555) {
+        //16:9
+        WIDTH = 455;
+      } else if (landscapeRatio >= 1.167) {
+        //4:3
+        WIDTH = 341;
+      }
+    }
+
+    else if (naturalWidth < naturalHeight) {
+      const portraitRatio = naturalHeight / naturalWidth;
+      if (portraitRatio >= 1.889) {
+        //1:2
+        HEIGHT = 512;
+      } else if (portraitRatio >= 1.639) {
+        //9:16
+        HEIGHT = 455;
+      } else if (portraitRatio >= 1.417) {
+        //2:3
+        HEIGHT = 384;
+      } else if (portraitRatio >= 1.292) {
+        //3:4
+        HEIGHT = 341;
+      } else if (portraitRatio >= 1.125) {
+        //4:5
+        HEIGHT = 320;
+      }
+    }
+
+    setDimensions({
+      width: WIDTH,
+      height: HEIGHT,
+    });
+  };
+
   return (
     <div style={{ position: 'relative' }}>
       {/* Floating Header */}
@@ -73,8 +121,8 @@ function UploadNode({ data, id }: NodeProps<ImageNode>) {
           border: '1px solid #e5e7eb',
           borderRadius: '16px',
           background: 'white',
-          minWidth: '200px',
-          minHeight: '200px',
+          width: `${dimensions.width}px`,
+          height: `${dimensions.height}px`,
           boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
           overflow: 'hidden',
           display: 'flex',
@@ -85,7 +133,7 @@ function UploadNode({ data, id }: NodeProps<ImageNode>) {
         {!data.image && (
           <div style={{
             width: '100%',
-            height: '200px',
+            height: '100%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -116,6 +164,7 @@ function UploadNode({ data, id }: NodeProps<ImageNode>) {
           <img
             src={data.image}
             alt="Uploaded"
+            onLoad={handleImageLoad}
             style={{
               width: '100%',
               height: '100%',

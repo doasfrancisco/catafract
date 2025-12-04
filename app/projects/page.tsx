@@ -7,7 +7,7 @@ import { analytics } from '@/lib/mixpanel';
 import { useUserStore } from '@/app/store/useUserStore';
 import { useProjectStore } from '@/app/projects/store/useProjectStore';
 import { useCanvasStore } from '@/app/projects/canvas/[id]/store/useCanvasStore';
-
+import Paywall from './_components/Paywall';
 import { Search, Plus, Workflow, Home, Image as ImageIcon, Video, Wand2, PenTool, Type, Folder, User, LogOut } from "lucide-react";
 import { useRouter } from 'next/navigation'
 
@@ -37,26 +37,11 @@ export default function ProjectsPage() {
         redirect('/login');
     }
 
-    const handleUpgrade = () => {
-        // analytics.trackUpgradeClicked(isPro);
+    const handlePortal = () => {
         if (userData?.isPro) {
             window.location.href = '/api/portal';
-        } else {
-            let productId = 'e1c52c1a-e8e0-4340-bda2-7cfb368f74ae';
-            if (process.env.NEXT_PUBLIC_SETUP === "local") {
-                productId = '4546a385-edca-4363-937e-48a88413bedb';
-            }
-
-            const params = new URLSearchParams();
-            params.append('products', productId);
-
-            if (userData?.id) params.append('customerExternalId', userData.id);
-            if (userData?.email) params.append('customerEmail', userData.email);
-            if (userData?.name) params.append('customerName', userData.name);
-
-            window.location.href = `/api/checkout?${params.toString()}`;
         }
-    };
+    }
 
     const handleSignOut = () => {
         analytics.trackSignOut();
@@ -99,7 +84,10 @@ export default function ProjectsPage() {
 
     return (
         <div className="min-h-screen bg-[#FDFCF8] text-black font-sans">
-            {/* Top Navigation Bar */}
+            {!userData?.isPro && (
+                <Paywall />
+            )}
+
             {/* Top Navigation Bar */}
             <div className="relative flex items-center justify-between px-6 py-4">
                 {/* Left Side (Empty for now to balance if needed, or just rely on absolute center) */}
@@ -118,12 +106,14 @@ export default function ProjectsPage() {
 
                 {/* Right Side */}
                 <div className="flex items-center justify-end gap-4 w-1/3">
-                    <button
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 hover: cursor-pointer transition-colors"
-                        onClick={handleUpgrade}
-                    >
-                        {userData!.isPro ? 'Portal' : 'Upgrade'}
-                    </button>
+                    {userData!.isPro && (
+                        <button
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 hover: cursor-pointer transition-colors"
+                            onClick={handlePortal}
+                        >
+                            Portal
+                        </button>
+                    )}
                     <div className="relative flex items-center gap-2">
                         <button
                             onClick={() => setShowUserMenu(!showUserMenu)}

@@ -186,87 +186,32 @@ function GenerationNode({ data, id }: NodeProps<ImageNode>) {
               </div>
             )}
 
-            {/* Content Area */}
-            <div style={{
-              padding: '16px',
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: data.image ? 'flex-end' : 'flex-start',
-              zIndex: 1,
-              position: 'relative',
-              height: '100%',
-            }}>
-              {/* Prompt Input / Overlay */}
-              <div style={{ marginBottom: data.image ? '0' : '12px' }}>
-                {!data.image && (
-                  <label style={{
-                    display: 'block',
-                    fontSize: '11px',
-                    fontWeight: 500,
-                    color: '#6b7280',
-                    marginBottom: '6px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em'
-                  }}>
-                    Prompt
-                  </label>
-                )}
-
-                {data.image ? (
-                  <p style={{
-                    color: 'white',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    margin: 0,
-                    textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                  }}>
-                    {prompt}
-                  </p>
-                ) : (
-                  <textarea
-                    value={prompt}
-                    onChange={handlePromptChange}
-                    placeholder="Describe your image..."
-                    style={{
-                      width: '100%',
-                      minHeight: '80px',
-                      padding: '12px',
-                      borderRadius: '12px',
-                      border: '1px solid #e5e7eb',
-                      fontSize: '14px',
-                      resize: 'vertical',
-                      background: '#f9fafb',
-                      color: '#1f2937',
-                      outline: 'none',
-                      transition: 'border-color 0.2s',
-                    }}
-                  />
-                )}
+            {data.image && (
+              <div className="absolute bottom-4 left-4 right-4 z-10">
+                <p className="text-white text-node-prompt font-medium drop-shadow-md truncate">
+                  {prompt}
+                </p>
               </div>
+            )}
 
-              {/* Generate Button - Only show if no image */}
-              {!data.image && (
-                <button
-                  onClick={handleGenerate}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    backgroundColor: '#1f2937',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    transition: 'background-color 0.2s',
-                    marginTop: 'auto',
+            {/* Input Overlay (Only when no image) */}
+            {!data.image && (
+              <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
+                <textarea
+                  value={prompt}
+                  onChange={handlePromptChange}
+                  placeholder="Describe the image you want to generate... and press Enter to run"
+                  className="w-full bg-transparent text-grey-800 text-node-prompt placeholder:text-zinc-500 outline-none resize-none h-auto min-h-[24px] overflow-hidden"
+                  rows={2}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleGenerate();
+                    }
                   }}
-                >
-                  Generate Image
-                </button>
-              )}
-            </div>
+                />
+              </div>
+            )}
           </>
         )}
       </div>

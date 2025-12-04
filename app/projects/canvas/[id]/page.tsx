@@ -505,6 +505,7 @@ function Canvas() {
                     nodeTypes={nodeTypes}
                     fitView
                     minZoom={0.001}
+                    maxZoom={3.5}
                     proOptions={{ hideAttribution: true }}
                 />
             </div>

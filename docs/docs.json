@@ -76,6 +76,7 @@
         "groups": [
           {
             "group": "Get Started",
+            "icon": "terminal",
             "pages": [
               "index",
               "quickstart",
@@ -104,20 +105,6 @@
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   }
 }

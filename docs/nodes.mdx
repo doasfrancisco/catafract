@@ -3,4 +3,154 @@ title: 'Catafract Nodes'
 description: 'A node-based canvas to generate images'
 ---
 
-Docs pending...
+## Overview
+
+Catafract uses a node-based visual interface powered by [ReactFlow](https://reactflow.dev/) to create AI image generation workflows. Nodes can be connected together to form a pipeline where images flow through transformations.
+
+## Node Types
+
+### Upload Node
+
+The Upload node allows you to add images to your canvas workflow. These images can serve as inputs for AI generation nodes.
+
+**Features:**
+- Upload images from your local computer
+- Automatic upload to Azure Blob Storage
+- Dynamic sizing based on image aspect ratio
+- Output handle to connect to other nodes
+
+**Supported Aspect Ratios:**
+- Square (1:1) - 256x256px
+- Landscape (4:3) - 341x256px
+- Landscape (16:9) - 455x256px
+- Landscape (2:1) - 512x256px
+- Portrait (4:5) - 256x320px
+- Portrait (3:4) - 256x341px
+- Portrait (2:3) - 256x384px
+- Portrait (9:16) - 256x455px
+- Portrait (1:2) - 256x512px
+
+**How to Add:**
+1. Right-click on the canvas
+2. Select "Upload" from the context menu
+3. Choose an image file from your computer
+4. The image will be uploaded and displayed in the node
+
+**API Endpoint:** `/api/upload`
+
+### Generation Node
+
+The Generation node uses Google's Gemini AI model to generate new images based on input images and text prompts.
+
+**Features:**
+- Text prompt input for image transformation
+- Accepts multiple input images via connections
+- Real-time generation status with countdown timer
+- Automatic result storage in Azure Blob Storage
+- Output handle to chain with more nodes
+
+**Configuration:**
+- **Model:** `gemini-3-pro-image-preview`
+- **Input:** Requires at least one connected image node
+- **Prompt:** Text description of desired transformation
+
+**How to Use:**
+1. Right-click on the canvas
+2. Select "Image Generator" from the Nodes section
+3. Connect one or more Upload or Generation nodes to its input handle (left side)
+4. Type your prompt in the text area
+5. Press Enter to start generation
+6. Wait 30 seconds for the AI to generate your image
+
+**Example Prompts:**
+- "Make this image look like a watercolor painting"
+- "Transform this into a cyberpunk style illustration"
+- "Convert this photo to a sketch drawing"
+- "Add dramatic sunset lighting to this scene"
+
+**API Endpoint:** `/api/image`
+
+## Canvas Features
+
+### Context Menus
+
+**Canvas Context Menu** (Right-click on empty space):
+- Upload - Add a new upload node
+- Nodes section with Image Generator option
+
+**Node Context Menu** (Right-click on a node):
+- Download - Save the node's image to your computer
+- Favorite - Mark the node as a favorite (coming soon)
+
+### Node Connections
+
+Connect nodes by clicking and dragging from one node's output handle (right side) to another node's input handle (left side). This creates a visual workflow where:
+
+- Upload nodes provide source images
+- Generation nodes transform images based on prompts
+- Multiple inputs can feed into a single generation node
+
+### Auto-Save
+
+Your canvas state is automatically saved every second (with a 1-second debounce) to Azure Cosmos DB. This includes:
+- Node positions
+- Node data (images, prompts, etc.)
+- Edge connections
+- Project metadata
+
+## Keyboard Shortcuts
+
+- **Enter** - When focused on a Generation node prompt, starts image generation
+- **Right-click** - Opens context menu
+- **Click + Drag** - Creates connections between nodes
+- **Mouse wheel** - Zoom in/out on canvas
+- **Click + Drag (empty space)** - Pan the canvas
+
+## Node State Management
+
+Nodes use React's local state and Zustand stores for state management:
+
+- **Local State:** Prompt text, generation status, image dimensions
+- **Canvas Store:** Global canvas data, nodes, edges, loading state
+- **Project Store:** Project metadata, user information
+
+## Technical Details
+
+### Node Data Structure
+
+```typescript
+interface ImageNodeData {
+  type: 'upload' | 'generation';
+  image?: string;           // URL to image in Azure Blob Storage
+  prompt?: string;          // Text prompt for generation
+  isGenerating?: boolean;   // Current generation status
+}
+
+interface ImageNode {
+  id: string;
+  type: 'upload' | 'generation';
+  position: { x: number; y: number };
+  data: ImageNodeData;
+}
+```
+
+### Event System
+
+Nodes communicate with the canvas using custom window events:
+
+- `nodeDataUpdate` - Triggered when a node's data changes (e.g., image upload)
+- `generateImage` - Triggered when generation is requested
+
+## Best Practices
+
+1. **Always connect at least one input** before generating images
+2. **Use descriptive prompts** for better generation results
+3. **Chain multiple generations** to refine results progressively
+4. **Download important results** as the canvas is session-based
+
+## Limitations
+
+- Generation nodes require at least one connected input image
+- Generation takes approximately 30 seconds per image
+- The Gemini model works best with clear, descriptive prompts
+- Node canvas state is saved per project

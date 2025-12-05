@@ -79,6 +79,37 @@
               "quickstart",
               "nodes"
             ]
+          },
+          {
+            "group": "Configuration",
+            "icon": "gear",
+            "pages": [
+              "configuration",
+              "database-schema"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "icon": "code",
+        "groups": [
+          {
+            "group": "Overview",
+            "icon": "book",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "icon": "webhook",
+            "pages": [
+              "api-reference/endpoints/auth",
+              "api-reference/endpoints/image",
+              "api-reference/endpoints/upload",
+              "api-reference/endpoints/projects"
+            ]
           }
         ]
       }

@@ -1,0 +1,212 @@
+---
+title: 'File Upload'
+description: 'Upload images to Azure Blob Storage'
+---
+
+## POST /api/upload
+
+Upload an image file to Azure Blob Storage. Returns the permanent URL of the uploaded file.
+
+### Authentication
+
+Requires a valid NextAuth session.
+
+### Request Body
+
+This endpoint accepts `multipart/form-data` with a file field.
+
+### Parameters
+
+<ParamField body="file" type="File" required>
+  The image file to upload.
+
+  **Supported formats:**
+  - PNG
+  - JPEG/JPG
+  - GIF
+  - WebP
+  - Any image format supported by browsers
+</ParamField>
+
+### Response
+
+#### Success Response (200)
+
+```json
+{
+  "url": "https://[storage-account].blob.core.windows.net/catafract/[timestamp]-[filename]"
+}
+```
+
+<ResponseField name="url" type="string">
+  Permanent URL to the uploaded file in Azure Blob Storage
+</ResponseField>
+
+#### Error Responses
+
+<ResponseExample>
+```json 400 - No file provided
+{
+  "error": "No file provided"
+}
+```
+
+```json 401 - Unauthorized
+{
+  "error": "Unauthorized"
+}
+```
+
+```json 500 - Upload failed
+{
+  "error": "Failed to upload file"
+}
+```
+</ResponseExample>
+
+### Example Request (JavaScript)
+
+```javascript
+// Using FormData
+const formData = new FormData();
+formData.append('file', fileInput.files[0]);
+
+const response = await fetch('/api/upload', {
+  method: 'POST',
+  body: formData, // Note: Do NOT set Content-Type header
+});
+
+const data = await response.json();
+console.log(data.url); // https://...
+```
+
+### Example Request (React)
+
+```jsx
+const handleFileUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Upload failed');
+    }
+
+    const { url } = await response.json();
+    console.log('Uploaded to:', url);
+  } catch (error) {
+    console.error('Error uploading file:', error);
+  }
+};
+
+// Usage
+<input type="file" accept="image/*" onChange={handleFileUpload} />
+```
+
+### File Naming
+
+Uploaded files are automatically named with the following pattern:
+
+```
+[timestamp]-[original-filename]
+```
+
+Example: `1704067200000-photo.jpg`
+
+This ensures unique filenames and prevents conflicts.
+
+### Storage Details
+
+**Container:** `catafract`
+
+**Storage Account:** Configured via `AZURE_STORAGE_CONNECTION_STRING`
+
+**Access:** Public read access (URLs are publicly accessible)
+
+### Processing Steps
+
+1. **Validation:**
+   - Check authentication
+   - Verify file exists in request
+
+2. **File Processing:**
+   - Convert file to Buffer
+   - Generate unique filename with timestamp
+   - Preserve original filename
+
+3. **Upload:**
+   - Upload to Azure Blob Storage
+   - Set appropriate content type
+   - Return public URL
+
+### MIME Type Detection
+
+The endpoint automatically detects and sets the correct MIME type based on the file's content type from the browser.
+
+### File Size Limits
+
+File size limits are determined by:
+- Next.js body size limit (default: 4MB)
+- Azure Blob Storage limits
+- Browser capabilities
+
+To increase the limit, configure Next.js:
+
+```javascript
+// next.config.js
+module.exports = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+};
+```
+
+### Best Practices
+
+- Always validate file types on the client side
+- Show upload progress to users
+- Handle errors gracefully
+- Store the returned URL for later use
+- Consider implementing file size validation
+
+### Security Considerations
+
+- Only authenticated users can upload files
+- Files are stored in a public container
+- No virus scanning is implemented
+- No file type validation beyond browser checks
+- Consider implementing additional security measures for production
+
+### Integration with Nodes
+
+The Upload Node uses this endpoint:
+
+```jsx
+const handleFileChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch('/api/upload', {
+    method: 'POST',
+    body: formData,
+  });
+
+  const { url } = await response.json();
+
+  // Update node data with Azure URL
+  updateNodeData({ image: url });
+};
+```

@@ -1,0 +1,358 @@
+---
+title: 'Database Schema'
+description: 'Azure Cosmos DB collections and data models'
+---
+
+## Overview
+
+Catafract uses Azure Cosmos DB (SQL API) for persistent storage. The database name is `catafract` and contains four primary collections.
+
+## Collections
+
+### Users Collection
+
+Stores user account information from Google OAuth.
+
+**Container Name:** `users`
+**Partition Key:** `/email`
+
+#### Schema
+
+```typescript
+interface User {
+  id: string;                    // UUID (auto-generated)
+  email: string;                 // From Google OAuth (partition key)
+  name: string;                  // From Google OAuth
+  image: string;                 // Profile picture URL
+  createdAt: string;             // ISO 8601 timestamp
+  isPro: boolean;                // Subscription status
+  provider: string;              // Always "google"
+  polarCustomerId?: string;      // Polar customer ID (if subscribed)
+  subscriptionStatus?: string;   // "active" | "wont-renew" | "revoked"
+}
+```
+
+#### Example Document
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "user@example.com",
+  "name": "John Doe",
+  "image": "https://lh3.googleusercontent.com/a/...",
+  "createdAt": "2024-01-15T10:30:00.000Z",
+  "isPro": false,
+  "provider": "google"
+}
+```
+
+#### Operations
+
+- **Create:** On first Google OAuth sign-in
+- **Read:** On session validation, user data fetch
+- **Update:** On subscription changes via Polar webhook
+
+---
+
+### Projects Collection
+
+Stores project metadata for organizing canvas workspaces.
+
+**Container Name:** `projects`
+**Partition Key:** `/userId`
+
+#### Schema
+
+```typescript
+interface Project {
+  id: string;           // UUID
+  userId: string;       // Reference to user (partition key)
+  name: string;         // Project name
+  createdDate: Date;    // Creation timestamp
+}
+```
+
+#### Example Document
+
+```json
+{
+  "id": "7b2e8f45-a1c3-4d92-9f21-3b4e5f6a7c8d",
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "My First Project",
+  "createdDate": "2024-01-15T14:22:00.000Z"
+}
+```
+
+#### Operations
+
+- **Create:** When user creates a new project
+- **Read:** When loading user's projects list
+- **Update:** Not currently implemented
+- **Delete:** Not currently implemented
+
+---
+
+### Canvas Collection
+
+Stores the node and edge data for each project's canvas.
+
+**Container Name:** `canvas`
+**Partition Key:** `/projectId`
+
+#### Schema
+
+```typescript
+interface Canvas {
+  id: string;           // UUID
+  projectId: string;    // Reference to project (partition key)
+  nodes: Node[];        // Array of canvas nodes
+  edges: Edge[];        // Array of connections
+}
+
+interface Node {
+  id: string;
+  type: 'upload' | 'generation';
+  position: { x: number; y: number };
+  data: {
+    type: 'upload' | 'generation';
+    image?: string;
+    prompt?: string;
+    isGenerating?: boolean;
+  };
+}
+
+interface Edge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string;
+  targetHandle?: string;
+}
+```
+
+#### Example Document
+
+```json
+{
+  "id": "9c4f2b1e-3d5a-4e8b-a7c9-1f2e3d4a5b6c",
+  "projectId": "7b2e8f45-a1c3-4d92-9f21-3b4e5f6a7c8d",
+  "nodes": [
+    {
+      "id": "upload-1",
+      "type": "upload",
+      "position": { "x": 100, "y": 100 },
+      "data": {
+        "type": "upload",
+        "image": "https://catafractstorage.blob.core.windows.net/catafract/1704067200000-photo.jpg"
+      }
+    },
+    {
+      "id": "generation-1",
+      "type": "generation",
+      "position": { "x": 400, "y": 100 },
+      "data": {
+        "type": "generation",
+        "prompt": "Make this image look like a watercolor painting",
+        "image": "https://catafractstorage.blob.core.windows.net/catafract/generated-1704067230000.png"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "upload-1",
+      "target": "generation-1"
+    }
+  ]
+}
+```
+
+#### Operations
+
+- **Create/Upsert:** Auto-saved every 1 second (debounced)
+- **Read:** When loading a project's canvas
+- **Update:** Via upsert operation on every auto-save
+- **Delete:** Not currently implemented
+
+---
+
+### Generations Collection
+
+Stores metadata about AI-generated images for analytics and tracking.
+
+**Container Name:** `generations`
+**Partition Key:** `/userId`
+
+#### Schema
+
+```typescript
+interface Generation {
+  id: string;              // Format: "gen-{timestamp}"
+  userId: string;          // User email (partition key)
+  prompt: string;          // Text prompt used
+  inputImages: string[];   // Array of input image URLs
+  outputImageUrl: string;  // Generated image URL
+  createdAt: string;       // ISO 8601 timestamp
+}
+```
+
+#### Example Document
+
+```json
+{
+  "id": "gen-1704067230000",
+  "userId": "user@example.com",
+  "prompt": "Make this image look like a watercolor painting",
+  "inputImages": [
+    "https://catafractstorage.blob.core.windows.net/catafract/1704067200000-photo.jpg"
+  ],
+  "outputImageUrl": "https://catafractstorage.blob.core.windows.net/catafract/generated-1704067230000.png",
+  "createdAt": "2024-01-15T15:30:30.000Z"
+}
+```
+
+#### Operations
+
+- **Create:** After successful image generation
+- **Read:** Not currently implemented (for future analytics)
+- **Update:** Not implemented
+- **Delete:** Not implemented
+
+---
+
+## Partition Key Strategy
+
+### Why These Partition Keys?
+
+**Users (`/email`):**
+- Natural partition key as email is unique
+- All queries for user data filter by email
+- Even distribution across partitions
+
+**Projects (`/userId`):**
+- Users query their own projects most frequently
+- Co-locates all projects for a user
+- Efficient for listing user's projects
+
+**Canvas (`/projectId`):**
+- Each project has exactly one canvas
+- Canvas is always loaded by project ID
+- Perfect 1:1 relationship
+
+**Generations (`/userId`):**
+- Future-proofing for per-user analytics
+- Can track generation history by user
+- Even distribution expected
+
+---
+
+## Indexing Policy
+
+Cosmos DB uses automatic indexing by default. All properties are indexed unless explicitly excluded.
+
+### Recommended Custom Indexes
+
+For production optimization, consider these indexes:
+
+```json
+{
+  "indexingMode": "consistent",
+  "automatic": true,
+  "includedPaths": [
+    {
+      "path": "/*"
+    }
+  ],
+  "excludedPaths": [
+    {
+      "path": "/nodes/*"
+    },
+    {
+      "path": "/edges/*"
+    },
+    {
+      "path": "/inputImages/*"
+    }
+  ]
+}
+```
+
+**Rationale:**
+- Exclude large arrays (`nodes`, `edges`, `inputImages`) from indexing
+- Reduces index size and write costs
+- These fields are not queried directly
+
+---
+
+## Query Patterns
+
+### Get User by Email
+
+```sql
+SELECT * FROM c WHERE c.email = @email
+```
+
+### Get User's Projects
+
+```sql
+SELECT * FROM c WHERE c.userId = @userId
+```
+
+### Get Canvas for Project
+
+```sql
+SELECT * FROM c WHERE c.projectId = @projectId
+```
+
+### Get User Generations (Future)
+
+```sql
+SELECT * FROM c WHERE c.userId = @userId ORDER BY c.createdAt DESC
+```
+
+---
+
+## Performance Considerations
+
+### Request Units (RU)
+
+Typical RU costs:
+- User lookup: ~2-3 RU
+- Project list: ~3-5 RU per project
+- Canvas load: ~10-50 RU (depends on node count)
+- Canvas save: ~10-50 RU (depends on node count)
+
+### Optimization Tips
+
+1. **Use partition keys in queries:** Always include partition key for efficient queries
+2. **Limit canvas size:** Large canvas documents (1000+ nodes) increase RU costs
+3. **Consider pagination:** For users with many projects or generations
+4. **Monitor RU consumption:** Set up alerts for unexpected spikes
+
+### Scaling Considerations
+
+- **Throughput:** Start with 400 RU/s, scale based on usage
+- **Storage:** Monitor document sizes, especially canvas documents
+- **Partitioning:** Current strategy scales to millions of users
+- **Archival:** Consider archiving old generations
+
+---
+
+## Database Utilities
+
+### Creating Collections
+
+See [Configuration](/configuration) for Azure CLI commands to create all required collections.
+
+### Backup Strategy
+
+Azure Cosmos DB provides automatic backups every 4 hours with 8-hour retention by default. Consider upgrading to continuous backup for production.
+
+### Monitoring
+
+Monitor these metrics:
+- Request Unit consumption
+- Document count per collection
+- Average document size
+- Query performance
+- Throttling events (429 errors)

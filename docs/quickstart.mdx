@@ -1,6 +1,116 @@
 ---
 title: "Quickstart"
-description: "Generate your first image with catafract"
+description: "Generate your first image with Catafract"
 ---
 
-Quickstart pending...
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- [Bun](https://bun.sh) installed (v1.0 or higher)
+- A Google OAuth application for authentication
+- An Azure account with Cosmos DB and Blob Storage
+- A Google Gemini API key
+- (Optional) A Polar account for payments
+- (Optional) A Mux account for video features
+- (Optional) A Mixpanel account for analytics
+
+## Installation
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/doasfrancisco/catafract.git
+    cd catafract
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    ```bash
+    bun install
+    ```
+  </Step>
+
+  <Step title="Set up environment variables">
+    Create a `.env.local` file in the root directory with the following variables:
+
+    ```bash
+    # Authentication
+    GOOGLE_CLIENT_ID=your_google_client_id
+    GOOGLE_CLIENT_SECRET=your_google_client_secret
+    NEXTAUTH_URL=http://localhost:3000
+    NEXTAUTH_SECRET=your_nextauth_secret
+
+    # Azure Storage
+    AZURE_STORAGE_CONNECTION_STRING=your_azure_storage_connection_string
+    AZURE_COSMOS_CONNECTION_STRING=your_azure_cosmos_connection_string
+
+    # Google Gemini AI
+    GEMINI_API_KEY=your_gemini_api_key
+
+    # Polar Payment (Optional)
+    NEXT_PUBLIC_SETUP=local
+    POLAR_ACCESS_TOKEN=your_polar_access_token
+    POLAR_SANDBOX_ACCESS_TOKEN=your_polar_sandbox_token
+    POLAR_WEBHOOK_SECRET=your_polar_webhook_secret
+    POLAR_SANDBOX_WEBHOOK_SECRET=your_polar_sandbox_webhook_secret
+    POLAR_SUCCESS_URL=http://localhost:3000/projects
+    POLAR_RETURN_URL=http://localhost:3000/projects
+
+    # Mux Video (Optional)
+    MUX_TOKEN_ID=your_mux_token_id
+    MUX_TOKEN_SECRET=your_mux_token_secret
+
+    # Mixpanel Analytics (Optional)
+    NEXT_PUBLIC_MIXPANEL_TOKEN=your_mixpanel_token
+    NEXT_PUBLIC_PROXY_MIXPANEL_API=your_mixpanel_proxy_url
+    ```
+  </Step>
+
+  <Step title="Run the development server">
+    ```bash
+    bun run dev
+    ```
+
+    Open [http://localhost:3000](http://localhost:3000) in your browser.
+  </Step>
+</Steps>
+
+## Creating Your First Image
+
+<Steps>
+  <Step title="Sign in with Google">
+    Navigate to the home page and click "Sign in" to authenticate with your Google account.
+  </Step>
+
+  <Step title="Create a new project">
+    After signing in, you'll be redirected to the Projects page. Click the "+" button to create a new project.
+  </Step>
+
+  <Step title="Add an Upload Node">
+    Right-click on the canvas and select "Upload" from the context menu. Upload an image from your computer.
+  </Step>
+
+  <Step title="Add a Generation Node">
+    Right-click on the canvas again and select "Image Generator" from the Nodes section.
+  </Step>
+
+  <Step title="Connect the nodes">
+    Click and drag from the output handle (right side) of the Upload node to the input handle (left side) of the Generation node.
+  </Step>
+
+  <Step title="Generate your image">
+    In the Generation node, type a prompt describing how you want to transform the image (e.g., "Make this image look like a watercolor painting"). Press Enter to generate.
+  </Step>
+</Steps>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Learn about Nodes" icon="circle-nodes" href="/nodes">
+    Understand how Upload and Generation nodes work
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the API endpoints
+  </Card>
+</CardGroup>

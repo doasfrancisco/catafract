@@ -1,13 +1,74 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Catafract",
+  "seo": {
+    "metatags": {
+      "canonical": "https://docs.catafract.com"
+    }
+  },
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#ff73a8",
+    "light": "#ff73a8",
+    "dark": "#ff73a8"
+  },
+  "background": {
+    "decoration": "gradient"
   },
   "favicon": "/favicon.svg",
+  "fonts": {
+    "heading": {
+      "family": "Inter Display Bold",
+      "source": "https://mintlify-assets.b-cdn.net/fonts/InterDisplay-Bold.woff2",
+      "format": "woff2"
+    }
+  },
+  "appearance": {
+    "default": "system"
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:hi@mintlify.com"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://dashboard.mintlify.com"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "styling": {
+    "codeblocks": {
+      "theme": {
+        "light": "github-light",
+        "dark": "dracula"
+      }
+    }
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/doasfrancisco",
+      "github": "https://github.com/doasfrancisco/catafract"
+    }
+  },
   "navigation": {
     "tabs": [
       {
@@ -57,41 +118,6 @@
           "icon": "newspaper"
         }
       ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/doasfrancisco",
-      "github": "https://github.com/doasfrancisco/catafract"
     }
   }
 }

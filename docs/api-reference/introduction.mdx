@@ -1,33 +1,127 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: 'API Reference'
+description: 'Complete API reference for Catafract endpoints'
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Overview
 
-## Welcome
+The Catafract API provides endpoints for image generation, file uploads, project management, authentication, and payment processing. All API endpoints require authentication unless otherwise specified.
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+## Base URL
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+```
+http://localhost:3000/api
+```
+
+For production, replace with your deployment URL.
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+All API endpoints use NextAuth.js for authentication with Google OAuth. Requests must include a valid session cookie obtained through the authentication flow.
+
+### Authentication Flow
+
+1. User visits `/login`
+2. Clicks "Sign in with Google"
+3. NextAuth redirects to Google OAuth
+4. Google redirects back to `/api/auth/callback/google`
+5. Session cookie is set automatically
+
+### Protected Routes
+
+The following routes require authentication:
+- `/api/image` - AI image generation
+- `/api/upload` - File uploads
+- `/api/user` - User data
+- `/api/user/project` - Project management
+- `/api/user/project/canvas` - Canvas state management
+- `/api/checkout` - Payment checkout
+- `/api/portal` - Customer portal
+
+## Rate Limits
+
+Currently, there are no explicit rate limits implemented. However, AI image generation is limited by:
+- Gemini API quotas
+- Azure Blob Storage limits
+- Session-based authentication
+
+## Error Responses
+
+All endpoints return standard HTTP status codes:
+
+### Success Codes
+- `200` - Success
+- `201` - Created
+
+### Client Error Codes
+- `400` - Bad Request (missing or invalid parameters)
+- `401` - Unauthorized (no valid session)
+- `404` - Not Found
+
+### Server Error Codes
+- `500` - Internal Server Error
+
+Error responses follow this format:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "error": "Error message",
+  "details": "Additional error details (optional)"
+}
 ```
+
+## Endpoints Overview
+
+### Image Generation
+- `POST /api/image` - Generate AI images using Gemini
+
+### File Management
+- `POST /api/upload` - Upload images to Azure Blob Storage
+
+### User Management
+- `GET /api/user` - Get current user data
+
+### Project Management
+- `POST /api/user/project` - Create a new project
+- `GET /api/user/project` - Get user's projects
+
+### Canvas Management
+- `POST /api/user/project/canvas` - Save canvas state
+- `GET /api/user/project/canvas` - Load canvas state
+
+### Authentication
+- `GET/POST /api/auth/[...nextauth]` - NextAuth.js endpoints
+
+### Payments (Polar)
+- `GET /api/checkout` - Create checkout session
+- `GET /api/portal` - Access customer portal
+- `POST /api/webhook/polar` - Handle Polar webhooks
+
+### Video (Mux)
+- `GET /api/mux/asset` - Get Mux asset status
+
+## SDK and Tools
+
+Currently, Catafract does not provide an official SDK. All endpoints can be accessed using standard HTTP clients like:
+
+- `fetch` (JavaScript/TypeScript)
+- `axios`
+- `curl`
+- Any HTTP client library
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Image Generation" icon="image" href="/api-reference/endpoints/image">
+    Generate AI images with Gemini
+  </Card>
+  <Card title="File Upload" icon="upload" href="/api-reference/endpoints/upload">
+    Upload images to Azure
+  </Card>
+  <Card title="Projects" icon="folder" href="/api-reference/endpoints/projects">
+    Manage projects and canvas
+  </Card>
+  <Card title="Authentication" icon="lock" href="/api-reference/endpoints/auth">
+    Learn about authentication
+  </Card>
+</CardGroup>

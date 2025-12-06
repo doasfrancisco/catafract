@@ -1,0 +1,330 @@
+---
+title: 'Configuration'
+description: 'Environment variables and configuration guide'
+---
+
+## Environment Variables
+
+Catafract requires several environment variables to be configured. Create a `.env.local` file in the project root with the following variables.
+
+## Required Variables
+
+### Authentication
+
+<ParamField path="GOOGLE_CLIENT_ID" type="string" required>
+  Google OAuth Client ID from Google Cloud Console
+
+  **How to get:**
+  1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+  2. Navigate to APIs & Services > Credentials
+  3. Create OAuth 2.0 Client ID
+  4. Copy the Client ID
+</ParamField>
+
+<ParamField path="GOOGLE_CLIENT_SECRET" type="string" required>
+  Google OAuth Client Secret from Google Cloud Console
+
+  **How to get:**
+  Available in the same location as Client ID
+</ParamField>
+
+<ParamField path="NEXTAUTH_URL" type="string" required>
+  The base URL of your application
+
+  **Development:**
+  ```
+  http://localhost:3000
+  ```
+
+  **Production:**
+  ```
+  https://yourdomain.com
+  ```
+</ParamField>
+
+<ParamField path="NEXTAUTH_SECRET" type="string" required>
+  Secret key for encrypting session tokens
+
+  **Generate with:**
+  ```bash
+  openssl rand -base64 32
+  ```
+
+  Example: `abc123xyz789...`
+</ParamField>
+
+### Azure Storage
+
+<ParamField path="AZURE_STORAGE_CONNECTION_STRING" type="string" required>
+  Connection string for Azure Blob Storage
+
+  **Format:**
+  ```
+  DefaultEndpointsProtocol=https;AccountName=[account];AccountKey=[key];EndpointSuffix=core.windows.net
+  ```
+
+  **How to get:**
+  1. Go to [Azure Portal](https://portal.azure.com/)
+  2. Navigate to your Storage Account
+  3. Go to Access Keys
+  4. Copy Connection String
+</ParamField>
+
+<ParamField path="AZURE_COSMOS_CONNECTION_STRING" type="string" required>
+  Connection string for Azure Cosmos DB
+
+  **Format:**
+  ```
+  AccountEndpoint=https://[account].documents.azure.com:443/;AccountKey=[key];
+  ```
+
+  **How to get:**
+  1. Go to Azure Portal
+  2. Navigate to your Cosmos DB account
+  3. Go to Keys
+  4. Copy Primary Connection String
+</ParamField>
+
+### AI Model
+
+<ParamField path="GEMINI_API_KEY" type="string" required>
+  API key for Google Gemini AI
+
+  **How to get:**
+  1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+  2. Create API Key
+  3. Copy the key
+
+  **Note:** This is different from Google Cloud API keys
+</ParamField>
+
+## Optional Variables
+
+### Payment Processing (Polar)
+
+<ParamField path="NEXT_PUBLIC_SETUP" type="string">
+  Environment mode for Polar integration
+
+  **Values:**
+  - `local` - Use sandbox mode
+  - `production` - Use production mode
+
+  **Default:** `production`
+</ParamField>
+
+<ParamField path="POLAR_ACCESS_TOKEN" type="string">
+  Polar production access token
+
+  **How to get:**
+  1. Sign up at [Polar.sh](https://polar.sh)
+  2. Go to Settings > API Keys
+  3. Create Production Access Token
+</ParamField>
+
+<ParamField path="POLAR_SANDBOX_ACCESS_TOKEN" type="string">
+  Polar sandbox access token for testing
+
+  **How to get:**
+  Same as production token, but select Sandbox mode
+</ParamField>
+
+<ParamField path="POLAR_WEBHOOK_SECRET" type="string">
+  Secret for verifying Polar webhooks (production)
+
+  **How to get:**
+  1. Go to Polar Settings > Webhooks
+  2. Create webhook endpoint
+  3. Copy the signing secret
+</ParamField>
+
+<ParamField path="POLAR_SANDBOX_WEBHOOK_SECRET" type="string">
+  Secret for verifying Polar webhooks (sandbox)
+</ParamField>
+
+<ParamField path="POLAR_SUCCESS_URL" type="string">
+  URL to redirect after successful payment
+
+  **Example:**
+  ```
+  http://localhost:3000/projects
+  ```
+</ParamField>
+
+<ParamField path="POLAR_RETURN_URL" type="string">
+  URL to return from customer portal
+
+  **Example:**
+  ```
+  http://localhost:3000/projects
+  ```
+</ParamField>
+
+### Video Processing (Mux)
+
+<ParamField path="MUX_TOKEN_ID" type="string">
+  Mux API Token ID
+
+  **How to get:**
+  1. Sign up at [Mux](https://mux.com)
+  2. Go to Settings > Access Tokens
+  3. Create new token
+  4. Copy Token ID
+</ParamField>
+
+<ParamField path="MUX_TOKEN_SECRET" type="string">
+  Mux API Token Secret
+
+  **How to get:**
+  Available when creating the token (copy immediately, not shown again)
+</ParamField>
+
+### Analytics (Mixpanel)
+
+<ParamField path="NEXT_PUBLIC_MIXPANEL_TOKEN" type="string">
+  Mixpanel project token
+
+  **How to get:**
+  1. Sign up at [Mixpanel](https://mixpanel.com)
+  2. Create a project
+  3. Go to Project Settings
+  4. Copy Project Token
+
+  **Note:** Must be prefixed with `NEXT_PUBLIC_` to be available client-side
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_PROXY_MIXPANEL_API" type="string">
+  Custom proxy URL for Mixpanel API (optional)
+
+  **Use case:** Bypass ad blockers or implement custom tracking
+
+  **Default:** Mixpanel's default API endpoint
+</ParamField>
+
+## Complete Example
+
+```bash
+# Authentication (Required)
+GOOGLE_CLIENT_ID=123456789.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-abc123xyz
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=generatedSecretKey123
+
+# Azure Storage (Required)
+AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=abc123==;EndpointSuffix=core.windows.net
+AZURE_COSMOS_CONNECTION_STRING=AccountEndpoint=https://myaccount.documents.azure.com:443/;AccountKey=xyz789==;
+
+# Google Gemini AI (Required)
+GEMINI_API_KEY=AIzaSyAbc123XYZ
+
+# Polar Payment (Optional)
+NEXT_PUBLIC_SETUP=local
+POLAR_ACCESS_TOKEN=polar_at_prod_abc123
+POLAR_SANDBOX_ACCESS_TOKEN=polar_at_sandbox_xyz789
+POLAR_WEBHOOK_SECRET=whsec_abc123
+POLAR_SANDBOX_WEBHOOK_SECRET=whsec_sandbox_xyz789
+POLAR_SUCCESS_URL=http://localhost:3000/projects
+POLAR_RETURN_URL=http://localhost:3000/projects
+
+# Mux Video (Optional)
+MUX_TOKEN_ID=abc123-token-id
+MUX_TOKEN_SECRET=xyz789TokenSecret
+
+# Mixpanel Analytics (Optional)
+NEXT_PUBLIC_MIXPANEL_TOKEN=abc123mixpaneltoken
+NEXT_PUBLIC_PROXY_MIXPANEL_API=https://api.mixpanel.com
+```
+
+## Azure Configuration
+
+### Required Azure Resources
+
+1. **Storage Account**
+   - Container name: `catafract`
+   - Public access level: Blob (anonymous read access)
+
+2. **Cosmos DB Account**
+   - API: Core (SQL)
+   - Database name: `catafract`
+   - Containers:
+     - `users` (partition key: `/email`)
+     - `projects` (partition key: `/userId`)
+     - `canvas` (partition key: `/projectId`)
+     - `generations` (partition key: `/userId`)
+
+### Creating Azure Resources
+
+```bash
+# Create resource group
+az group create --name catafract-rg --location eastus
+
+# Create storage account
+az storage account create \
+  --name catafractstorage \
+  --resource-group catafract-rg \
+  --location eastus \
+  --sku Standard_LRS
+
+# Create container
+az storage container create \
+  --name catafract \
+  --account-name catafractstorage \
+  --public-access blob
+
+# Create Cosmos DB account
+az cosmosdb create \
+  --name catafract-cosmos \
+  --resource-group catafract-rg \
+  --locations regionName=eastus
+
+# Create database
+az cosmosdb sql database create \
+  --account-name catafract-cosmos \
+  --resource-group catafract-rg \
+  --name catafract
+
+# Create containers
+az cosmosdb sql container create \
+  --account-name catafract-cosmos \
+  --database-name catafract \
+  --name users \
+  --partition-key-path /email
+
+az cosmosdb sql container create \
+  --account-name catafract-cosmos \
+  --database-name catafract \
+  --name projects \
+  --partition-key-path /userId
+
+az cosmosdb sql container create \
+  --account-name catafract-cosmos \
+  --database-name catafract \
+  --name canvas \
+  --partition-key-path /projectId
+
+az cosmosdb sql container create \
+  --account-name catafract-cosmos \
+  --database-name catafract \
+  --name generations \
+  --partition-key-path /userId
+```
+
+## Validation
+
+To validate your configuration, run:
+
+```bash
+bun run dev
+```
+
+Check the console for any missing environment variable errors. The application will log warnings for optional variables that are not set.
+
+## Security Best Practices
+
+- Never commit `.env.local` to version control
+- Add `.env.local` to `.gitignore`
+- Use different credentials for development and production
+- Rotate secrets regularly
+- Use Azure Key Vault for production secrets
+- Enable Azure Storage firewall rules
+- Implement IP restrictions on Cosmos DB
+- Monitor API usage and set up alerts

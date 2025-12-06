@@ -1,0 +1,346 @@
+---
+title: 'Projects & Canvas'
+description: 'Manage projects and canvas state'
+---
+
+## Project Management
+
+### POST /api/user/project
+
+Create a new project for the authenticated user.
+
+#### Authentication
+
+Requires a valid NextAuth session.
+
+#### Request Body
+
+```json
+{
+  "userId": "string",
+  "name": "string"
+}
+```
+
+<ParamField body="userId" type="string" required>
+  The ID of the user creating the project
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  The name of the project (e.g., "Untitled Project")
+</ParamField>
+
+#### Response (200)
+
+```json
+{
+  "id": "uuid",
+  "userId": "string",
+  "name": "string",
+  "createdDate": "2024-01-01T00:00:00.000Z"
+}
+```
+
+#### Example Request
+
+```javascript
+const response = await fetch('/api/user/project', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    userId: 'user-123',
+    name: 'My New Project'
+  })
+});
+
+const project = await response.json();
+console.log(project.id); // UUID of created project
+```
+
+---
+
+### GET /api/user/project
+
+Get all projects for the authenticated user.
+
+#### Authentication
+
+Requires a valid NextAuth session.
+
+#### Query Parameters
+
+<ParamField query="userId" type="string" required>
+  The ID of the user whose projects to retrieve
+</ParamField>
+
+#### Response (200)
+
+```json
+[
+  {
+    "id": "uuid",
+    "userId": "string",
+    "name": "string",
+    "createdDate": "2024-01-01T00:00:00.000Z"
+  }
+]
+```
+
+#### Error Responses
+
+```json 400 - Missing User ID
+{
+  "error": "User ID is required"
+}
+```
+
+```json 401 - Unauthorized
+{
+  "error": "Unauthorized"
+}
+```
+
+#### Example Request
+
+```javascript
+const userId = 'user-123';
+const response = await fetch(`/api/user/project?userId=${userId}`, {
+  method: 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
+
+const projects = await response.json();
+console.log(projects.length); // Number of projects
+```
+
+---
+
+## Canvas Management
+
+### POST /api/user/project/canvas
+
+Save or update the canvas state for a project. Uses `upsert` operation.
+
+#### Authentication
+
+Requires a valid NextAuth session.
+
+#### Request Body
+
+```json
+{
+  "id": "string (optional)",
+  "projectId": "string",
+  "nodes": "array",
+  "edges": "array"
+}
+```
+
+<ParamField body="id" type="string">
+  Canvas ID (if updating existing canvas). Generated automatically if not provided.
+</ParamField>
+
+<ParamField body="projectId" type="string" required>
+  The ID of the project this canvas belongs to
+</ParamField>
+
+<ParamField body="nodes" type="array" required>
+  Array of node objects representing the canvas nodes
+
+  ```typescript
+  interface Node {
+    id: string;
+    type: 'upload' | 'generation';
+    position: { x: number; y: number };
+    data: {
+      type: 'upload' | 'generation';
+      image?: string;
+      prompt?: string;
+      isGenerating?: boolean;
+    };
+  }
+  ```
+</ParamField>
+
+<ParamField body="edges" type="array" required>
+  Array of edge objects representing connections between nodes
+
+  ```typescript
+  interface Edge {
+    id: string;
+    source: string;
+    target: string;
+    sourceHandle?: string;
+    targetHandle?: string;
+  }
+  ```
+</ParamField>
+
+#### Response (200)
+
+Returns the saved canvas object:
+
+```json
+{
+  "id": "uuid",
+  "projectId": "string",
+  "nodes": [],
+  "edges": []
+}
+```
+
+#### Example Request
+
+```javascript
+const response = await fetch('/api/user/project/canvas', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    projectId: 'project-123',
+    nodes: [
+      {
+        id: 'upload-1',
+        type: 'upload',
+        position: { x: 0, y: 0 },
+        data: {
+          type: 'upload',
+          image: 'https://...'
+        }
+      }
+    ],
+    edges: []
+  })
+});
+
+const canvas = await response.json();
+```
+
+---
+
+### GET /api/user/project/canvas
+
+Load the canvas state for a project.
+
+#### Authentication
+
+Requires a valid NextAuth session.
+
+#### Query Parameters
+
+<ParamField query="projectId" type="string" required>
+  The ID of the project whose canvas to retrieve
+</ParamField>
+
+#### Response (200)
+
+```json
+{
+  "id": "uuid",
+  "projectId": "string",
+  "nodes": [],
+  "edges": []
+}
+```
+
+Returns `null` if no canvas exists for the project.
+
+#### Error Responses
+
+```json 400 - Missing Project ID
+{
+  "error": "Project ID is required"
+}
+```
+
+```json 401 - Unauthorized
+{
+  "error": "Unauthorized"
+}
+```
+
+#### Example Request
+
+```javascript
+const projectId = 'project-123';
+const response = await fetch(`/api/user/project/canvas?projectId=${projectId}`, {
+  method: 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
+
+const canvas = await response.json();
+if (canvas) {
+  console.log('Canvas loaded:', canvas.nodes.length, 'nodes');
+} else {
+  console.log('No canvas found for this project');
+}
+```
+
+---
+
+## Database Schema
+
+### Projects Collection
+
+```json
+{
+  "id": "uuid",
+  "userId": "string",
+  "name": "string",
+  "createdDate": "ISOString"
+}
+```
+
+**Container:** `projects`
+**Partition Key:** `userId`
+
+### Canvas Collection
+
+```json
+{
+  "id": "uuid",
+  "projectId": "string",
+  "nodes": "array",
+  "edges": "array"
+}
+```
+
+**Container:** `canvas`
+**Partition Key:** `projectId`
+
+---
+
+## Auto-Save Behavior
+
+The canvas automatically saves every second (with debounce) when changes are made:
+
+```javascript
+const [debouncedNodes] = useDebounce(nodes, 1000);
+const [debouncedEdges] = useDebounce(edges, 1000);
+
+useEffect(() => {
+  if (!canvasData || nodes !== debouncedNodes || !isInitialized) return;
+
+  await fetch('/api/user/project/canvas', {
+    method: 'POST',
+    body: JSON.stringify({
+      id: canvasData.id,
+      projectId: canvasData.projectId,
+      nodes: debouncedNodes,
+      edges: debouncedEdges
+    })
+  });
+}, [debouncedNodes, debouncedEdges]);
+```
+
+This ensures that:
+- Changes are saved automatically
+- API calls are throttled to prevent excessive requests
+- Users don't lose work on accidental page closure

@@ -1,0 +1,332 @@
+---
+title: 'Authentication'
+description: 'NextAuth.js with Google OAuth'
+---
+
+## Overview
+
+Catafract uses [NextAuth.js](https://next-auth.js.org/) v4 for authentication with Google as the OAuth provider.
+
+## Authentication Flow
+
+<Steps>
+  <Step title="User initiates sign-in">
+    User navigates to `/login` and clicks "Sign in with Google"
+  </Step>
+
+  <Step title="OAuth redirect">
+    NextAuth redirects to Google OAuth consent screen
+  </Step>
+
+  <Step title="User authorizes">
+    User grants permissions to the application
+  </Step>
+
+  <Step title="Callback processing">
+    Google redirects back to `/api/auth/callback/google`
+
+    NextAuth processes the callback and:
+    - Checks if user exists in database
+    - Creates new user if first-time sign-in
+    - Establishes session
+  </Step>
+
+  <Step title="Session established">
+    Session cookie is set and user is redirected to `/projects`
+  </Step>
+</Steps>
+
+## API Endpoints
+
+### GET/POST /api/auth/[...nextauth]
+
+NextAuth.js dynamic route handler for all authentication operations.
+
+**Supported operations:**
+- `GET /api/auth/signin` - Sign in page
+- `GET /api/auth/signout` - Sign out
+- `GET /api/auth/callback/google` - OAuth callback
+- `POST /api/auth/signin/google` - Initiate Google OAuth
+- `GET /api/auth/session` - Get current session
+- `GET /api/auth/csrf` - Get CSRF token
+- `GET /api/auth/providers` - List available providers
+
+## Configuration
+
+### Environment Variables
+
+```bash
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_nextauth_secret
+```
+
+### AuthOptions
+
+```typescript
+export const authOptions: AuthOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  callbacks: {
+    async signIn({ user, account }) {
+      const existingUser = await getUser(user.email!);
+      if (!existingUser && account?.provider === "google") {
+        await createUser({
+          email: user.email!,
+          name: user.name!,
+          image: user.image!,
+          createdAt: new Date().toISOString(),
+          isPro: false,
+          provider: account?.provider,
+        });
+      }
+      return true;
+    },
+  },
+  pages: {
+    signIn: '/login'
+  },
+}
+```
+
+## User Creation
+
+When a user signs in for the first time, a new user record is created in Azure Cosmos DB:
+
+```typescript
+interface User {
+  id: string;              // UUID
+  email: string;           // From Google OAuth
+  name: string;            // From Google OAuth
+  image: string;           // Profile picture URL
+  createdAt: string;       // ISO timestamp
+  isPro: boolean;          // Subscription status (default: false)
+  provider: string;        // "google"
+  polarCustomerId?: string;
+  subscriptionStatus?: string;
+}
+```
+
+**Database:**
+- Container: `users`
+- Partition Key: `email`
+
+## Session Management
+
+### Getting Current Session (Client)
+
+```javascript
+import { useSession } from 'next-auth/react';
+
+function MyComponent() {
+  const { data: session, status } = useSession();
+
+  if (status === 'loading') {
+    return <div>Loading...</div>;
+  }
+
+  if (status === 'unauthenticated') {
+    return <div>Not signed in</div>;
+  }
+
+  return (
+    <div>
+      Signed in as {session.user?.email}
+    </div>
+  );
+}
+```
+
+### Getting Current Session (Server)
+
+```javascript
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+
+export async function GET(request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Session is valid
+  const userEmail = session.user?.email;
+}
+```
+
+## Sign In
+
+### Client-Side Sign In
+
+```javascript
+import { signIn } from 'next-auth/react';
+
+// Redirect to Google OAuth
+await signIn('google', {
+  callbackUrl: '/projects'
+});
+```
+
+### Login Page Example
+
+```jsx
+import { signIn } from 'next-auth/react';
+
+export default function LoginPage() {
+  return (
+    <button onClick={() => signIn('google', { callbackUrl: '/projects' })}>
+      Sign in with Google
+    </button>
+  );
+}
+```
+
+## Sign Out
+
+### Client-Side Sign Out
+
+```javascript
+import { signOut } from 'next-auth/react';
+
+await signOut({
+  callbackUrl: '/'
+});
+```
+
+With analytics:
+
+```javascript
+import { signOut } from 'next-auth/react';
+import { analytics } from '@/lib/mixpanel';
+
+const handleSignOut = () => {
+  analytics.trackSignOut();
+  signOut({ callbackUrl: '/' });
+};
+```
+
+## Protected Routes
+
+### Client-Side Protection
+
+```javascript
+'use client';
+
+import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
+import { useEffect } from 'react';
+
+export default function ProtectedPage() {
+  const { status } = useSession();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      redirect('/login');
+    }
+  }, [status]);
+
+  if (status === 'loading') {
+    return <div>Loading...</div>;
+  }
+
+  return <div>Protected content</div>;
+}
+```
+
+### Server-Side Protection
+
+```javascript
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { redirect } from 'next/navigation';
+
+export default async function ProtectedPage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    redirect('/login');
+  }
+
+  return <div>Protected content</div>;
+}
+```
+
+### API Route Protection
+
+```javascript
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+
+export async function POST(request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Protected logic here
+}
+```
+
+## Session Configuration
+
+Sessions are managed via cookies (default NextAuth.js behavior):
+
+- **Cookie name:** `next-auth.session-token`
+- **Cookie security:** HttpOnly, Secure (in production)
+- **Session strategy:** JWT (default)
+- **Session max age:** 30 days (NextAuth default)
+
+## Provider Setup
+
+### Google OAuth Console
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing
+3. Enable Google+ API
+4. Create OAuth 2.0 credentials
+5. Add authorized redirect URIs:
+   - `http://localhost:3000/api/auth/callback/google` (development)
+   - `https://yourdomain.com/api/auth/callback/google` (production)
+6. Copy Client ID and Client Secret to `.env.local`
+
+## Security Considerations
+
+- Never commit `.env.local` to version control
+- Use strong `NEXTAUTH_SECRET` (generate with `openssl rand -base64 32`)
+- Configure authorized redirect URIs carefully
+- Enable 2FA on your Google Cloud account
+- Monitor OAuth usage in Google Console
+- Implement rate limiting for production
+
+## Troubleshooting
+
+### "Configuration Error"
+
+Check that all environment variables are set:
+```bash
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+NEXTAUTH_URL=...
+NEXTAUTH_SECRET=...
+```
+
+### "Callback URL Mismatch"
+
+Ensure the redirect URI in Google Console matches exactly:
+```
+http://localhost:3000/api/auth/callback/google
+```
+
+### Session Not Persisting
+
+Check that:
+- Cookies are enabled in browser
+- `NEXTAUTH_URL` matches your domain
+- No cookie-blocking extensions are active

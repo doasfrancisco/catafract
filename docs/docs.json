@@ -8,14 +8,14 @@
     }
   },
   "colors": {
-    "primary": "#ecede8",
-    "light": "#ecede8",
-    "dark": "#ecede8"
+    "primary": "#f6f6f6",
+    "light": "#0b0b0b",
+    "dark": "#f6f6f6"
   },
   "background": {
     "decoration": "gradient",
     "color": {
-      "light": "#ecede8",
+      "light": "#e6ebef",
       "dark": "#000000"
     }
   },
@@ -29,7 +29,7 @@
   },
   "appearance": {
     "default": "dark",
-    "strict": true
+    "strict": false
   },
   "logo": {
     "light": "/logo/light.svg",

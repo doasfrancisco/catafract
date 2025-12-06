@@ -15,7 +15,7 @@
   "background": {
     "decoration": "gradient",
     "color": {
-      "light": "#000000",
+      "light": "#ecede8",
       "dark": "#000000"
     }
   },
@@ -28,7 +28,8 @@
     }
   },
   "appearance": {
-    "default": "system"
+    "default": "dark",
+    "strict": true
   },
   "logo": {
     "light": "/logo/light.svg",

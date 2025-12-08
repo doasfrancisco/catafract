@@ -15,6 +15,8 @@ The Upload node allows you to add images to your canvas workflow. These images c
 
 **Features:**
 - Upload images from your local computer
+- Paste images directly from your clipboard (⌘/Ctrl + V)
+- Drag and drop image files onto the canvas
 - Automatic upload to Azure Blob Storage
 - Dynamic sizing based on image aspect ratio
 - Output handle to connect to other nodes
@@ -31,10 +33,10 @@ The Upload node allows you to add images to your canvas workflow. These images c
 - Portrait (1:2) - 256x512px
 
 **How to Add:**
-1. Right-click on the canvas
-2. Select "Upload" from the context menu
-3. Choose an image file from your computer
-4. The image will be uploaded and displayed in the node
+1. **Right-click** on the canvas and select **"Upload"** from the context menu, **or**
+2. **Paste** an image from your clipboard (⌘/Ctrl + V) anywhere on the canvas, **or**
+3. **Drag and drop** an image file onto the canvas
+4. The image will be uploaded and displayed inside a new Upload node at your cursor (or center) position
 
 **API Endpoint:** `/api/upload`
 
@@ -47,20 +49,22 @@ The Generation node uses Google's Gemini AI model to generate new images based o
 - Accepts multiple input images via connections
 - Real-time generation status with countdown timer
 - Automatic result storage in Azure Blob Storage
+- Automatic model fallback (`gemini-2.5-flash-image`) if the primary model fails
 - Output handle to chain with more nodes
 
 **Configuration:**
-- **Model:** `gemini-3-pro-image-preview`
+- **Primary Model:** `gemini-3-pro-image-preview`
+- **Fallback Model:** `gemini-2.5-flash-image` (used automatically on error)
 - **Input:** Requires at least one connected image node
 - **Prompt:** Text description of desired transformation
 
 **How to Use:**
 1. Right-click on the canvas
-2. Select "Image Generator" from the Nodes section
+2. Select **"Image Generator"** from the Nodes section
 3. Connect one or more Upload or Generation nodes to its input handle (left side)
 4. Type your prompt in the text area
-5. Press Enter to start generation
-6. Wait 30 seconds for the AI to generate your image
+5. Press **Enter** to start generation
+6. Wait ~30 seconds for the AI to generate your image
 
 **Example Prompts:**
 - "Make this image look like a watercolor painting"
@@ -72,15 +76,22 @@ The Generation node uses Google's Gemini AI model to generate new images based o
 
 ## Canvas Features
 
+### Paste & Drag-and-Drop
+
+You can now add Upload nodes without opening the context menu:
+
+- **Paste** (`⌘/Ctrl + V`) any image (e.g., a screenshot) and a new Upload node will appear at the center of the viewport.
+- **Drag and drop** one or multiple image files onto the canvas to create Upload nodes at the drop position.
+
 ### Context Menus
 
 **Canvas Context Menu** (Right-click on empty space):
-- Upload - Add a new upload node
+- Upload – Add a new Upload node
 - Nodes section with Image Generator option
 
 **Node Context Menu** (Right-click on a node):
-- Download - Save the node's image to your computer
-- Favorite - Mark the node as a favorite (coming soon)
+- Download – Save the node's image to your computer
+- Favorite – Mark the node as a favorite (coming soon)
 
 ### Node Connections
 
@@ -100,11 +111,12 @@ Your canvas state is automatically saved every second (with a 1-second debounce)
 
 ## Keyboard Shortcuts
 
-- **Enter** - When focused on a Generation node prompt, starts image generation
-- **Right-click** - Opens context menu
-- **Click + Drag** - Creates connections between nodes
-- **Mouse wheel** - Zoom in/out on canvas
-- **Click + Drag (empty space)** - Pan the canvas
+- **Enter** – When focused on a Generation node prompt, starts image generation
+- **⌘/Ctrl + V** – Paste an image to create an Upload node
+- **Right-click** – Opens context menu
+- **Click + Drag** – Creates connections between nodes
+- **Mouse wheel** – Zoom in/out on canvas
+- **Click + Drag (empty space)** – Pan the canvas
 
 ## Node State Management
 
@@ -138,8 +150,8 @@ interface ImageNode {
 
 Nodes communicate with the canvas using custom window events:
 
-- `nodeDataUpdate` - Triggered when a node's data changes (e.g., image upload)
-- `generateImage` - Triggered when generation is requested
+- `nodeDataUpdate` – Triggered when a node's data changes (e.g., image upload)
+- `generateImage` – Triggered when generation is requested
 
 ## Best Practices
 
@@ -152,5 +164,6 @@ Nodes communicate with the canvas using custom window events:
 
 - Generation nodes require at least one connected input image
 - Generation takes approximately 30 seconds per image
-- The Gemini model works best with clear, descriptive prompts
+- Automatic fallback model is used only if the primary model fails
+- The Gemini models work best with clear, descriptive prompts
 - Node canvas state is saved per project

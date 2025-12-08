@@ -119,7 +119,7 @@ function Canvas() {
         yScreen: 0
     });
     const flowPositionRef = useRef({ x: 0, y: 0 });
-    const { screenToFlowPosition } = useReactFlow();
+    const { screenToFlowPosition, getViewport } = useReactFlow();
 
     const onNodesChange = useCallback(
         (changes: NodeChange[]) =>
@@ -163,37 +163,97 @@ function Canvas() {
         analytics.trackNodeAdded('generation');
     }, [nodeId]);
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
-
-        try {
-            // Create FormData to send the file
-            const formData = new FormData();
-            formData.append('file', file);
-
-            // Upload to Azure via API
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (!response.ok) {
-                throw new Error('Upload failed');
-            }
-
-            const { url } = await response.json();
-            addUploadNode(url, flowPositionRef.current.x, flowPositionRef.current.y);
-        } catch (error) {
-            console.error('Error uploading file:', error);
-            alert('Failed to upload image. Please try again.');
+        if (file) {
+            await processImageUpload(file);
         }
-
-        // Reset input
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
     };
+
+    const handleContextMenu = useCallback((e: MouseEvent | ReactMouseEvent) => {
+        e.preventDefault();
+        const flowPosition = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        flowPositionRef.current = flowPosition;
+        setCursorInfo({
+            ...cursorInfo,
+            isRightClickCanvas: true,
+            isRightClickNode: false,
+            xScreen: e.clientX,
+            yScreen: e.clientY,
+        });
+    }, []);
+
+    const handleNodeContextMenu = useCallback((e: ReactMouseEvent, node: ImageNode) => {
+        e.preventDefault();
+        const flowPosition = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        flowPositionRef.current = flowPosition;
+        setCursorInfo({
+            isRightClickCanvas: false,
+            isRightClickNode: true,
+            nodeId: node.id,
+            xScreen: e.clientX,
+            yScreen: e.clientY,
+        });
+    }, []);
+
+    const processImageUpload = useCallback(async (file: File) => {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            if (!response.ok) throw new Error('Upload failed');
+            const { url } = await response.json();
+            const { x, y } = flowPositionRef.current;
+            addUploadNode(url, x, y);
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            alert('Failed to upload image. Please try again.');
+        }
+    }, [addUploadNode]);
+
+    const onCanvasClick = useCallback(() => {
+        if (cursorInfo.isRightClickCanvas || cursorInfo.isRightClickNode) {
+            flowPositionRef.current = { x: 0, y: 0 };
+            setCursorInfo({
+                ...cursorInfo,
+                isRightClickCanvas: false,
+                isRightClickNode: false,
+                xScreen: 0, yScreen: 0
+            });
+        }
+        if (showProjectMenu) {
+            setShowProjectMenu(false);
+        }
+    }, [cursorInfo, showProjectMenu]);
+
+    const onDragOver = useCallback((event: React.DragEvent) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+    }, []);
+
+    const onDrop = useCallback(async (event: React.DragEvent) => {
+        event.preventDefault();
+        const position = screenToFlowPosition({
+            x: event.clientX,
+            y: event.clientY,
+        });
+        flowPositionRef.current = position;
+        const files = event.dataTransfer.files;
+        if (files && files.length > 0) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.type.startsWith('image/')) {
+                    await processImageUpload(file);
+                }
+            }
+        }
+    }, [screenToFlowPosition, processImageUpload]);
 
     // Handle node data updates
     useEffect(() => {
@@ -349,46 +409,28 @@ function Canvas() {
     }, [debouncedNodes, debouncedEdges, canvasData, isInitialized]);
     //canvasData might cause infinite loop. be wary
 
-    const handleContextMenu = useCallback((e: MouseEvent | ReactMouseEvent) => {
-        e.preventDefault();
-        const flowPosition = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-        flowPositionRef.current = flowPosition;
-        setCursorInfo({
-            ...cursorInfo,
-            isRightClickCanvas: true,
-            isRightClickNode: false,
-            xScreen: e.clientX,
-            yScreen: e.clientY,
-        });
-    }, []);
-
-    const handleNodeContextMenu = useCallback((e: ReactMouseEvent, node: ImageNode) => {
-        e.preventDefault();
-        const flowPosition = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-        flowPositionRef.current = flowPosition;
-        setCursorInfo({
-            isRightClickCanvas: false,
-            isRightClickNode: true,
-            nodeId: node.id,
-            xScreen: e.clientX,
-            yScreen: e.clientY,
-        });
-    }, []);
-
-    const onCanvasClick = useCallback(() => {
-        if (cursorInfo.isRightClickCanvas || cursorInfo.isRightClickNode) {
-            flowPositionRef.current = { x: 0, y: 0 };
-            setCursorInfo({
-                ...cursorInfo,
-                isRightClickCanvas: false,
-                isRightClickNode: false,
-                xScreen: 0, yScreen: 0
-            });
-        }
-        if (showProjectMenu) {
-            setShowProjectMenu(false);
-        }
-    }, [cursorInfo, showProjectMenu]);
+    useEffect(() => {
+        const handlePaste = async (e: ClipboardEvent) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    const file = await item.getAsFile();
+                    if (file) {
+                        e.preventDefault();
+                        const center = screenToFlowPosition({
+                            x: window.innerWidth / 2,
+                            y: window.innerHeight / 2
+                        });
+                        flowPositionRef.current = center;
+                        processImageUpload(file);
+                    }
+                }
+            }
+        };
+        window.addEventListener('paste', handlePaste);
+        return () => window.removeEventListener('paste', handlePaste);
+    }, [processImageUpload])
 
     if (status === 'loading' || !isInitialized) {
         return <div className="flex items-center justify-center h-screen">Loading...</div>;
@@ -405,7 +447,7 @@ function Canvas() {
                 ref={fileInputRef}
                 className="hidden"
                 accept="image/*"
-                onChange={handleFileUpload}
+                onChange={onFileInputChange}
             />
 
             {nodes.length === 0 && (
@@ -493,6 +535,8 @@ function Canvas() {
             <div
                 className="w-full h-full"
                 onClick={onCanvasClick}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
             >
                 <ReactFlow
                     nodes={nodes}

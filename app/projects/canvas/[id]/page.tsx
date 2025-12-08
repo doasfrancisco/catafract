@@ -119,7 +119,7 @@ function Canvas() {
         yScreen: 0
     });
     const flowPositionRef = useRef({ x: 0, y: 0 });
-    const { screenToFlowPosition, getViewport } = useReactFlow();
+    const { screenToFlowPosition, getNodes } = useReactFlow();
 
     const onNodesChange = useCallback(
         (changes: NodeChange[]) =>
@@ -199,7 +199,7 @@ function Canvas() {
         });
     }, []);
 
-    const processImageUpload = useCallback(async (file: File) => {
+    const processImageUpload = useCallback(async (file: File, nodeId?: string) => {
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -209,6 +209,26 @@ function Canvas() {
             });
             if (!response.ok) throw new Error('Upload failed');
             const { url } = await response.json();
+
+
+            if (nodeId) {
+                setNodes((nds) =>
+                    nds.map((n) => {
+                        if (n.id === nodeId) {
+                            return {
+                                ...n,
+                                data: {
+                                    ...n.data,
+                                    image: url,
+                                },
+                            };
+                        }
+                        return n;
+                    })
+                );
+                return;
+            }
+
             const { x, y } = flowPositionRef.current;
             addUploadNode(url, x, y);
         } catch (error) {
@@ -243,13 +263,26 @@ function Canvas() {
             x: event.clientX,
             y: event.clientY,
         });
+
+        const targetNode = getNodes().find((n) => {
+            const width = n.measured?.width ?? n.width ?? 150;
+            const height = n.measured?.height ?? n.height ?? 150;
+
+            return (
+                position.x >= n.position!.x &&
+                position.x <= n.position!.x + width &&
+                position.y >= n.position!.y &&
+                position.y <= n.position!.y + height
+            )
+        });
+
         flowPositionRef.current = position;
         const files = event.dataTransfer.files;
         if (files && files.length > 0) {
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 if (file.type.startsWith('image/')) {
-                    await processImageUpload(file);
+                    await processImageUpload(file, targetNode?.id);
                 }
             }
         }
@@ -399,9 +432,15 @@ function Canvas() {
     useEffect(() => {
         const saveCanvas = async () => {
             if (!canvasData || nodes !== debouncedNodes || !isInitialized) return;
+            const canvasInfo = {
+                id: canvasData.id,
+                projectId: canvasData.projectId,
+                nodes: debouncedNodes,
+                edges: debouncedEdges
+            };
             await fetch('/api/user/project/canvas', {
                 method: 'POST',
-                body: JSON.stringify({ id: canvasData.id, projectId: canvasData.projectId, nodes: debouncedNodes, edges: debouncedEdges })
+                body: JSON.stringify(canvasInfo)
             });
         };
 

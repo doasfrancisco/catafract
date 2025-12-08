@@ -75,11 +75,20 @@ export async function POST(request: NextRequest) {
     }
     contents.push({ text: prompt });
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-image-preview',
-      // model: 'gemini-2.5-flash-image',
-      contents: contents,
-    });
+    let response;
+    try {
+      response = await ai.models.generateContent({
+        model: 'gemini-3-pro-image-preview',
+        // model: 'gemini-2.5-flash-image',
+        contents: contents,
+      });
+    } catch (error) {
+      console.warn('Primary model failed, retrying with fallback model...', error);
+      response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: contents,
+      });
+    }
 
     let generatedImageBase64 = null;
     let generatedText = null;

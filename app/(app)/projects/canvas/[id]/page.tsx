@@ -38,9 +38,9 @@ import {
     Star,
 } from "lucide-react";
 import { useDebounce } from 'use-debounce';
-import UploadNode from './_components/UploadNode';
-import GenerationNode from './_components/GenerationNode';
-import EmptyState from './_components/EmptyState';
+import UploadNode from './components/UploadNode';
+import GenerationNode from './components/GenerationNode';
+import EmptyState from './components/EmptyState';
 import { ImageNode, ImageNodeData } from './types';
 import { analytics } from '@/lib/mixpanel';
 import { useCanvasStore } from "../../canvas/[id]/store/useCanvasStore";

@@ -16,8 +16,8 @@ import {
   NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import UploadNode from './_components/UploadNode';
-import GenerationNode from './_components/GenerationNode';
+import UploadNode from './components/UploadNode';
+import GenerationNode from './components/GenerationNode';
 import { ImageNode, ImageNodeData } from './types';
 import { analytics } from '@/lib/mixpanel';
 

@@ -5,9 +5,9 @@ import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { analytics } from '@/lib/mixpanel';
 import { useUserStore } from '@/app/store/useUserStore';
-import { useProjectStore } from '@/app/projects/store/useProjectStore';
-import { useCanvasStore } from '@/app/projects/canvas/[id]/store/useCanvasStore';
-import Paywall from './_components/Paywall';
+import { useProjectStore } from './store/useProjectStore';
+import { useCanvasStore } from './canvas/[id]/store/useCanvasStore';
+import Paywall from './components/Paywall';
 import { Search, Plus, Workflow, Home, Image as ImageIcon, Video, Wand2, PenTool, Type, Folder, User, LogOut } from "lucide-react";
 import { useRouter } from 'next/navigation'
 

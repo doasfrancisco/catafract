@@ -1,11 +1,28 @@
+'use client';
+
+import Image from "next/image";
+import { useRef } from "react";
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
-import Image from "next/image";
+import { Mission } from "./components/Mission";
+import { Content } from "./components/Content";
+import { Footer } from "./components/Footer";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 export default function Home() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: mainScroll } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
+  const patternOpacity = useTransform(mainScroll, [0, 0.3], [1, 0]);
+
   return (
-    <div className="relative min-h-screen bg-[#FDFDFD] dark:bg-black font-sans selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black overflow-hidden">
-      <div className="absolute inset-0 w-full h-full pointer-events-none">
+    <div ref={containerRef} className="relative min-h-screen bg-[#FDFDFD] font-sans selection:bg-black selection:text-white">
+      <motion.div
+        style={{ opacity: patternOpacity }}
+        className="fixed inset-0 w-full h-full pointer-events-none"
+      >
         <Image
           src="/assets/background.svg"
           alt="Background pattern"
@@ -13,16 +30,13 @@ export default function Home() {
           className="object-cover"
           priority
         />
-      </div>
+      </motion.div >
 
-      <div className="relative z-10">
-        <div className="hidden lg:block">
-          <Navbar />
-        </div>
-        <main className="flex flex-col items-center justify-center">
-          <Hero />
-        </main>
-      </div>
-    </div>
+      <Navbar />
+      <Hero />
+      <Mission />
+      <Content />
+      <Footer />
+    </div >
   );
 }

@@ -2,26 +2,25 @@
 
 import Link from "next/link";
 import Image from "next/image";
-
 import { Button } from "@/app/components/button";
-
 import { signIn } from 'next-auth/react';
 
 export function Navbar() {
     return (
-        <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full">
-            <div className="flex items-center gap-2">
-                <Image
-                    src="/assets/logo_transparent.svg"
-                    alt="Logo" width={32} height={32}
-                    className=""
-                />
-                <span className="text-xl font-medium tracking-tight text-black dark:text-white">
-                    Catafract
-                </span>
-            </div>
+        <div className="fixed w-full hidden lg:block z-10" >
+            <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full">
+                <div className="flex items-center gap-2">
+                    <Image
+                        src="/assets/logo_transparent.svg"
+                        alt="Logo" width={32} height={32}
+                        className=""
+                    />
+                    <span className="text-xl font-medium tracking-tight text-black dark:text-white">
+                        Catafract
+                    </span>
+                </div>
 
-            {/* <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600 dark:text-zinc-300">
+                {/* <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600 dark:text-zinc-300">
                 <Link href="#" className="hover:text-black dark:hover:text-white transition-colors">
                     Enterprise
                 </Link>
@@ -33,7 +32,7 @@ export function Navbar() {
                 </Link>
             </div> */}
 
-            {/* <div className="flex items-center gap-4">
+                {/* <div className="flex items-center gap-4">
                 <Link
                     href="/login"
                     className="text-sm font-medium text-zinc-600 hover:text-black dark:text-zinc-300 dark:hover:text-white transition-colors"
@@ -49,6 +48,7 @@ export function Navbar() {
                     </Link>
                 </Button>
             </div> */}
-        </nav>
+            </nav>
+        </div>
     );
 }

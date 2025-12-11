@@ -23,7 +23,7 @@ export function Mission() {
                 {/* Left Circle */}
                 <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-black z-10 -mr-12">
                     <Image
-                        src="/assets/astronaut.png" // Placeholder, user can swap to specific circle images
+                        src="/assets/outlaw.png" // Placeholder, user can swap to specific circle images
                         alt="Circle 1"
                         fill
                         className="object-cover"
@@ -33,7 +33,7 @@ export function Mission() {
                 {/* Center Circle */}
                 <div className="relative w-56 h-56 md:w-72 md:h-72 rounded-full overflow-hidden border-4 border-black z-20 shadow-2xl">
                     <Image
-                        src="/assets/astronaut.png" // Placeholder
+                        src="/assets/me.jpg" // Placeholder
                         alt="Circle 2"
                         fill
                         className="object-cover"
@@ -43,7 +43,7 @@ export function Mission() {
                 {/* Right Circle */}
                 <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-black z-10 -ml-12">
                     <Image
-                        src="/assets/astronaut.png" // Placeholder
+                        src="/assets/julissa.jpg" // Placeholder
                         alt="Circle 3"
                         fill
                         className="object-cover"
@@ -53,8 +53,10 @@ export function Mission() {
 
             {/* Text Content */}
             <div className="max-w-4xl px-6 text-center z-10">
-                <h2 className="text-3xl md:text-5xl font-medium text-white tracking-tight leading-tight">
-                    Hedra is a frontier AI lab for generative media. We're building world-leading models and beautifully simple software for turning your ideas into impact.
+                <h2 className="text-3xl md:text-4xl font-light text-white tracking-tight leading-tight selection:bg-white selection:text-black">
+                    Many tools. One platform.
+                    <br />
+                    We provide the tools your AI needs for audience management, post creation, and reporting.
                 </h2>
             </div>
 

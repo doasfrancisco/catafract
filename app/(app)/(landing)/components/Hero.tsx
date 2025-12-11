@@ -6,7 +6,12 @@ import { Button } from "@/app/components/button";
 
 export function Hero() {
     return (
-        <section className="lg:min-h-screen relative w-full max-w-7xl mx-auto px-0 lg:px-6 pt-0 pb-12 lg:pt-24 lg:pb-32 flex flex-col-reverse lg:flex-row items-center  gap-8 lg:gap-12">
+        <section className={
+            `lg:min-h-screen relative w-full max-w-7xl mx-auto px-0 lg:px-6 
+            pt-0 pb-12 lg:pt-24 lg:pb-32 flex flex-col-reverse lg:flex-row 
+            items-center gap-8 lg:gap-12
+            selection:bg-black selection:text-white`
+        }>
             <div className="relative flex flex-col items-center lg:items-start gap-6 lg:gap-8 max-w-xl px-6 lg:px-0">
                 <div className="space-y-4 lg:space-y-2">
                     <div className="flex lg:hidden justify-center mb-6">
@@ -25,13 +30,12 @@ export function Hero() {
                     </svg>
 
                     <h1 className="text-center lg:text-center text-4xl lg:text-5xl font-normal tracking-tight text-black dark:text-white leading-[1.1]">
-                        Creative spark <span className="font-serif italic font-light">to</span>
+                        <span className="font-serif italic font-light">All-in-one</span> marketing
                         <br />
-                        captivating content
+                        platform for AI agents
                     </h1>
                     <p className="text-center lg:text-center lg:text-lg text-zinc-600 dark:text-zinc-400 max-w-md leading-relaxed mx-auto lg:mx-0">
-                        Unlock your storytelling superpowers with Catafract Studio, the
-                        visual-first platform for AI video, audio, and image.
+                        Catafract is the all-in-one open source platform to create content, do marketing and distribute your apps. Built for agents.
                     </p>
 
                     {/* Desktop Button */}

@@ -18,7 +18,7 @@ export default function Home() {
   const patternOpacity = useTransform(mainScroll, [0, 0.3], [1, 0]);
 
   return (
-    <div ref={containerRef} className="relative min-h-screen bg-[#FDFDFD] font-sans selection:bg-black selection:text-white">
+    <div ref={containerRef} className="relative min-h-screen bg-[#FDFDFD] font-sans">
       <motion.div
         style={{ opacity: patternOpacity }}
         className="fixed inset-0 w-full h-full pointer-events-none"

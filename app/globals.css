@@ -128,3 +128,45 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes play {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 0 3vh;
+  }
+}
+
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0a0a0a;
+  overflow: hidden;
+  perspective: 100vh;
+  perspective-origin: 50% 40%;
+}
+
+.bg-grid-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 200%;
+  background-image:
+    linear-gradient(to right,
+      rgba(238, 186, 66, 0.4) 1px,
+      transparent 0),
+    linear-gradient(to bottom,
+      rgba(238, 186, 66, 0.4) 1px,
+      transparent 0);
+  background-size: 4vh 3vh;
+  background-repeat: repeat;
+  transform-origin: 100% 0 0;
+  transform: rotateX(60deg);
+  animation: play 3s linear infinite;
+}

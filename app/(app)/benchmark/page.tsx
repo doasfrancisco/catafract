@@ -15,8 +15,12 @@ export default function BenchmarkPage() {
             <div className="bg-grid">
                 <div className="bg-grid-lines" />
                 <div
-                    className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a]/90 to-transparent"
-                    style={{ zIndex: 1 }}
+                    className="absolute inset-x-0 top-0 h-1/2"
+                    style={{
+                        zIndex: 1,
+                        background: 'linear-gradient(to bottom, #0a0a0a 0%, #0a0a0a 40%, rgba(10, 10, 10, 0) 100%)',
+                        transform: 'translateZ(1px)', // Force new layer on top of 3D context
+                    }}
                 />
             </div>
 
@@ -24,7 +28,7 @@ export default function BenchmarkPage() {
             <div className="relative z-10 w-full flex justify-center -translate-y-1/4">
                 <div className="relative max-w-4xl w-full bg-[#f5bd2c] border-3 border-[#f5bd2c] ring-2 ring-[#52350d] ring-inset p-1.5 rounded-lg">
                     <div className="py-4 text-center">
-                        <h1 className="text-[#52350d] text-xl lg:text-3xl font-extrabold tracking-tighter">
+                        <h1 className="text-[#52350d] text-sm lg:text-3xl font-extrabold tracking-tighter">
                             ZERO-FOUNDER BENCHMARK
                         </h1>
                     </div>
@@ -36,13 +40,13 @@ export default function BenchmarkPage() {
                             </div>
 
                             <div className="flex flex-col items-center text-left space-y-12">
-                                <h2 className="text-[#f5d340] text-xl lg:text-2xl tracking-wider drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
+                                <h2 className="text-[#f5d340] text-sm lg:text-2xl tracking-wider drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
                                     HUMANS
                                 </h2>
 
                                 <div className="space-y-4 tracking-wide">
                                     <div>
-                                        <p className="text-lg lg:text-base text-white drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">You</p>
+                                        <p className="text-xs lg:text-base text-white drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">You</p>
                                     </div>
                                     {/* <div>
                                         <p className="text-lg lg:text-base text-white drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">O&apos;BRIEN (Staccats)</p>
@@ -55,13 +59,13 @@ export default function BenchmarkPage() {
                             </div>
 
                             <div className="flex flex-col items-center text-center space-y-12">
-                                <h2 className="text-[#f5d340] text-xl lg:text-2xl tracking-wider drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
+                                <h2 className="text-[#f5d340] text-sm lg:text-2xl tracking-wider drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
                                     AI
                                 </h2>
 
                                 <div className="space-y-8 tracking-wide">
                                     <div>
-                                        <p className="text-lg lg:text-base text-white drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">Grok</p>
+                                        <p className="text-xs lg:text-base text-white drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">Grok</p>
                                     </div>
                                 </div>
                             </div>

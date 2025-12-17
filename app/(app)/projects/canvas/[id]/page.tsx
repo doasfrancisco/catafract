@@ -43,7 +43,9 @@ import GenerationNode from './components/GenerationNode';
 import EmptyState from './components/EmptyState';
 import { ImageNode, ImageNodeData } from './types';
 import { analytics } from '@/lib/mixpanel';
+import { compressWithJsquash } from '@/lib/imageCompress';
 import { useCanvasStore } from "../../canvas/[id]/store/useCanvasStore";
+import heic2any from "heic2any";
 
 const nodeTypes: NodeTypes = {
     upload: UploadNode,
@@ -201,8 +203,17 @@ function Canvas() {
 
     const processImageUpload = useCallback(async (file: File, nodeId?: string) => {
         try {
+            let fileToCompress = file;
+            if (file.type === "image/heic" || file.name.toLowerCase().endsWith(".heic")) {
+                const convertedBlob = await heic2any({
+                    blob: file,
+                    toType: "image/png",
+                }) as Blob;
+                fileToCompress = new File([convertedBlob], file.name.replace(/\.heic$/i, ".png"), { type: "image/png" });
+            }
+            const compressed = await compressWithJsquash(fileToCompress);
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('file', compressed);
             const response = await fetch('/api/upload', {
                 method: 'POST',
                 body: formData,
@@ -281,7 +292,7 @@ function Canvas() {
         if (files && files.length > 0) {
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                if (file.type.startsWith('image/')) {
+                if (file.type.startsWith('image/') || file.name.toLowerCase().endsWith(".heic")) {
                     await processImageUpload(file, targetNode?.id);
                 }
             }
@@ -453,9 +464,9 @@ function Canvas() {
             const items = e.clipboardData?.items;
             if (!items) return;
             for (const item of items) {
-                if (item.type.startsWith('image/')) {
+                if (item.type.startsWith('image/') || item.type === "") {
                     const file = await item.getAsFile();
-                    if (file) {
+                    if (file && (file.type.startsWith("image/") || file.name.toLowerCase().endsWith(".heic"))) {
                         e.preventDefault();
                         const center = screenToFlowPosition({
                             x: window.innerWidth / 2,

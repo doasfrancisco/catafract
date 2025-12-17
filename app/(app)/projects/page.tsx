@@ -218,7 +218,7 @@ export default function ProjectsPage() {
                                     <Plus className="w-6 h-6 text-white" />
                                 </div>
                             </button>
-                            {projectData?.map((item) => (
+                            {projectData && [...projectData].reverse().map((item) => (
                                 <button
                                     key={item.id}
                                     onClick={() => router.push(`/projects/canvas/${item.id}`)}

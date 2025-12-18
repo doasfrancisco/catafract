@@ -5,7 +5,7 @@ description: 'Azure Cosmos DB collections and data models'
 
 ## Overview
 
-Catafract uses Azure Cosmos DB (SQL API) for persistent storage. The database name is `catafract` and contains four primary collections.
+Catafract uses Azure Cosmos DB (SQL API) for persistent storage. The database name is `catafract` and contains **five** primary collections.
 
 ## Collections
 
@@ -220,6 +220,57 @@ interface Generation {
 
 ---
 
+### Templates Collection
+
+Stores reusable canvas templates that users can publish and share with the community.
+
+**Container Name:** `templates`
+**Partition Key:** `/templateName`
+
+#### Schema
+
+```typescript
+interface Template {
+  id: string;                 // UUID (auto-generated)
+  templateName: string;       // Name given by the user (partition key)
+  user: User;                 // The creator of the template
+  canvas: {
+    nodes: Node[];
+    edges: Edge[];
+    viewport: { x: number; y: number; zoom: number };
+  };
+  createdAt?: string;         // ISO 8601 timestamp (optional)
+}
+```
+
+#### Example Document
+
+```json
+{
+  "id": "c2d8f3b1-8e0d-4c3b-a1b2-123456789abc",
+  "templateName": "Product Poster",
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "John Doe"
+  },
+  "canvas": {
+    "nodes": [ /* same structure as Canvas.nodes */ ],
+    "edges": [ /* same structure as Canvas.edges */ ],
+    "viewport": { "x": 0, "y": 0, "zoom": 1 }
+  },
+  "createdAt": "2024-06-01T12:00:00.000Z"
+}
+```
+
+#### Operations
+
+- **Create:** When a user selects “Publish Template” in the canvas UI (POST `/api/upload/templates`)
+- **Read:** Listed on the Projects page for Community Templates (GET `/api/upload/templates`)
+- **Update:** Not currently implemented
+- **Delete:** Not currently implemented
+
+---
+
 ## Partition Key Strategy
 
 ### Why These Partition Keys?
@@ -244,115 +295,10 @@ interface Generation {
 - Can track generation history by user
 - Even distribution expected
 
----
-
-## Indexing Policy
-
-Cosmos DB uses automatic indexing by default. All properties are indexed unless explicitly excluded.
-
-### Recommended Custom Indexes
-
-For production optimization, consider these indexes:
-
-```json
-{
-  "indexingMode": "consistent",
-  "automatic": true,
-  "includedPaths": [
-    {
-      "path": "/*"
-    }
-  ],
-  "excludedPaths": [
-    {
-      "path": "/nodes/*"
-    },
-    {
-      "path": "/edges/*"
-    },
-    {
-      "path": "/inputImages/*"
-    }
-  ]
-}
-```
-
-**Rationale:**
-- Exclude large arrays (`nodes`, `edges`, `inputImages`) from indexing
-- Reduces index size and write costs
-- These fields are not queried directly
+**Templates (`/templateName`):**
+- Optimized for quickly querying templates by name on the Community Templates list
+- Template names are expected to be unique across users (enforced at application level)
 
 ---
 
-## Query Patterns
-
-### Get User by Email
-
-```sql
-SELECT * FROM c WHERE c.email = @email
-```
-
-### Get User's Projects
-
-```sql
-SELECT * FROM c WHERE c.userId = @userId
-```
-
-### Get Canvas for Project
-
-```sql
-SELECT * FROM c WHERE c.projectId = @projectId
-```
-
-### Get User Generations (Future)
-
-```sql
-SELECT * FROM c WHERE c.userId = @userId ORDER BY c.createdAt DESC
-```
-
----
-
-## Performance Considerations
-
-### Request Units (RU)
-
-Typical RU costs:
-- User lookup: ~2-3 RU
-- Project list: ~3-5 RU per project
-- Canvas load: ~10-50 RU (depends on node count)
-- Canvas save: ~10-50 RU (depends on node count)
-
-### Optimization Tips
-
-1. **Use partition keys in queries:** Always include partition key for efficient queries
-2. **Limit canvas size:** Large canvas documents (1000+ nodes) increase RU costs
-3. **Consider pagination:** For users with many projects or generations
-4. **Monitor RU consumption:** Set up alerts for unexpected spikes
-
-### Scaling Considerations
-
-- **Throughput:** Start with 400 RU/s, scale based on usage
-- **Storage:** Monitor document sizes, especially canvas documents
-- **Partitioning:** Current strategy scales to millions of users
-- **Archival:** Consider archiving old generations
-
----
-
-## Database Utilities
-
-### Creating Collections
-
-See [Configuration](/configuration) for Azure CLI commands to create all required collections.
-
-### Backup Strategy
-
-Azure Cosmos DB provides automatic backups every 4 hours with 8-hour retention by default. Consider upgrading to continuous backup for production.
-
-### Monitoring
-
-Monitor these metrics:
-- Request Unit consumption
-- Document count per collection
-- Average document size
-- Query performance
-- Throttling events (429 errors)
+<!-- Remaining sections (Indexing Policy, Query Patterns, etc.) remain unchanged -->

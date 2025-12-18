@@ -26,6 +26,7 @@
     "heic2any": "^0.0.4",
     "lucide-react": "^0.554.0",
     "mixpanel-browser": "^2.72.0",
+    "motion": "^12.23.26",
     "next": "16.0.7",
     "next-auth": "^4.24.13",
     "react": "19.2.1",

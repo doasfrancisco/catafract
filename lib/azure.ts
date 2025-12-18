@@ -16,6 +16,7 @@ const usersContainer = "users";
 const projectsContainer = "projects";
 const canvasesContainer = "canvas";
 const generationsContainer = "generations";
+const templatesContainer = "templates";
 
 export async function uploadToBlob(file: Buffer, filename: string, mimeType: string): Promise<string> {
   const containerClient = blobServiceClient.getContainerClient(containerName);
@@ -26,6 +27,25 @@ export async function uploadToBlob(file: Buffer, filename: string, mimeType: str
   });
 
   return blockBlobClient.url;
+}
+
+export async function uploadTemplate(template: any) {
+  const database = cosmosClient.database(databaseName);
+  const container = database.container(templatesContainer);
+
+  const { resource } = await container.items.create({
+    id: crypto.randomUUID(),
+    ...template
+  });
+  return resource;
+}
+
+export async function listTemplates() {
+  const database = cosmosClient.database(databaseName);
+  const container = database.container(templatesContainer);
+
+  const { resources } = await container.items.readAll().fetchAll();
+  return resources;
 }
 
 export async function saveToCosmos(item: any) {

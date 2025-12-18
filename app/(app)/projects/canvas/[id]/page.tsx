@@ -37,13 +37,17 @@ import {
     Download,
     Star,
 } from "lucide-react";
+
+import { BookTextIcon, BookTextIconHandle } from '@/app/components/book-text';
 import { useDebounce } from 'use-debounce';
 import UploadNode from './components/UploadNode';
 import GenerationNode from './components/GenerationNode';
 import EmptyState from './components/EmptyState';
+import TemplateModal from './components/TemplateModal';
 import { ImageNode, ImageNodeData } from './types';
 import { analytics } from '@/lib/mixpanel';
 import { compressWithJsquash } from '@/lib/imageCompress';
+import { useUserStore } from "@/app/store/useUserStore";
 import { useCanvasStore } from "../../canvas/[id]/store/useCanvasStore";
 import heic2any from "heic2any";
 
@@ -100,6 +104,7 @@ function NodeMenuBar({ cursorInfo }: { cursorInfo: { nodeId: string, xScreen: nu
 function Canvas() {
     const { data: session, status } = useSession();
     const { id: projectId } = useParams<{ id: string }>();
+    const { userData } = useUserStore();
     const { canvasData, isCanvasLoading, fetchCanvasData, resetCanvasData } = useCanvasStore()
     const [isInitialized, setIsInitialized] = useState(false);
     const router = useRouter();
@@ -111,7 +116,9 @@ function Canvas() {
 
     const [nodeId, setNodeId] = useState(1);
     const [showProjectMenu, setShowProjectMenu] = useState(false);
+    const [isTemplateModalOpen, setTemplateModalOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const newFeatureIconRef = useRef<BookTextIconHandle>(null);
 
     const [cursorInfo, setCursorInfo] = useState({
         isRightClickCanvas: false,
@@ -298,6 +305,33 @@ function Canvas() {
             }
         }
     }, [screenToFlowPosition, processImageUpload]);
+
+    const saveTemplate = async (name: string) => {
+        const templateData = {
+            templateName: name,
+            user: userData,
+            canvas: {
+                nodes,
+                edges,
+                viewport: { x: 0, y: 0, zoom: 1 }
+            }
+        };
+
+        try {
+            const res = await fetch('/api/upload/templates', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(templateData)
+            });
+            if (res.ok) {
+                setTemplateModalOpen(false);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     // Handle node data updates
     useEffect(() => {
@@ -548,11 +582,22 @@ function Canvas() {
                                     <ArrowLeft className="w-4 h-4" />
                                     Back to Projects
                                 </button>
+                                <button
+                                    onMouseEnter={() => newFeatureIconRef.current?.startAnimation()}
+                                    onMouseLeave={() => newFeatureIconRef.current?.stopAnimation()}
+                                    onClick={() => setTemplateModalOpen(true)}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <BookTextIcon ref={newFeatureIconRef} size={16} />
+                                    Publish Template
+                                </button>
                             </div>
                         </div>
                     )}
                 </div>
             </div>
+
+
 
             {/* Left Toolbar */}
             {/* <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 bg-white p-1.5 rounded-xl shadow-sm border border-gray-200 z-10">
@@ -658,6 +703,12 @@ function Canvas() {
             {cursorInfo.isRightClickNode && (
                 <NodeMenuBar cursorInfo={cursorInfo} />
             )}
+
+            <TemplateModal
+                isOpen={isTemplateModalOpen}
+                onClose={() => setTemplateModalOpen(false)}
+                onSave={saveTemplate}
+            />
         </div>
     );
 }

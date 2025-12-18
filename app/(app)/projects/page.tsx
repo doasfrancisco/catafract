@@ -15,27 +15,49 @@ export default function ProjectsPage() {
     const { data: session, status } = useSession();
     const { userData, isUserLoading } = useUserStore();
     const { projectData, isProjectLoading, fetchProjectData } = useProjectStore();
+    const [templates, setTemplates] = useState<any>([]);
     const { setCanvasData, setLoading } = useCanvasStore();
     const router = useRouter();
 
     const [showUserMenu, setShowUserMenu] = useState(false);
 
 
+    const createNewProject = async (template?: any) => {
+        const projectResponse = await fetch('/api/user/project', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId: userData?.id,
+                name: template ? template.templateName : "Untitled Project"
+            }),
+        });
+        const project = await projectResponse.json();
 
-    useEffect(() => {
-        if (!isUserLoading && isProjectLoading) {
-            fetchProjectData(userData?.id!);
-            analytics.trackProjectsLoaded(userData!.id);
-        }
-    }, [userData, projectData]);
+        const canvasResponse = await fetch('/api/user/project/canvas', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                nodes: template ? template.canvas.nodes : [],
+                edges: template ? template.canvas.edges : [],
+                projectId: project.id,
+                templateId: template?.id
+            }),
+        });
+        const canvas = await canvasResponse.json();
 
-
-    if (status === 'loading' || isUserLoading) {
-        return <div className="flex items-center justify-center h-screen">Loading...</div>;
-    }
-    if (!session) {
-        redirect('/login');
-    }
+        setCanvasData({
+            id: canvas.id,
+            projectId: canvas.projectId,
+            nodes: template ? template.canvas.nodes : canvas.nodes,
+            edges: template ? template.canvas.edges : canvas.edges,
+        });
+        setLoading(false);
+        router.push(`/projects/canvas/${project.id}`);
+    };
 
     const handlePortal = () => {
         if (userData?.isPro) {
@@ -48,39 +70,45 @@ export default function ProjectsPage() {
         signOut();
     };
 
-    const createNewProject = async () => {
-        const projectResponse = await fetch('/api/user/project', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId: userData?.id,
-                name: "Untitled Project"
-            }),
-        });
-        const project = await projectResponse.json();
+    const getGradientForName = (name: string) => {
+        const GRADIENTS = [
+            "bg-gradient-to-br from-purple-600 via-indigo-500 to-indigo-900", // Deep Purple
+            "bg-gradient-to-br from-blue-500 via-cyan-500 to-teal-500",       // Ocean
+            "bg-gradient-to-br from-rose-500 via-red-400 to-orange-400",      // Sunset
+            "bg-gradient-to-br from-emerald-500 via-green-400 to-lime-400",   // Nature
+            "bg-gradient-to-br from-slate-800 via-gray-700 to-zinc-900",      // Dark/Technical
+            "bg-gradient-to-br from-amber-400 via-orange-500 to-yellow-500",  // Gold
+        ];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash) % GRADIENTS.length;
+        return GRADIENTS[index];
+    }
 
-        const canvasResponse = await fetch('/api/user/project/canvas', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                projectId: project.id
-            }),
-        });
-        const canvas = await canvasResponse.json();
+    useEffect(() => {
+        const fetchTemplates = async () => {
+            const templatesResponse = await fetch('/api/upload/templates');
+            const templates = await templatesResponse.json();
+            setTemplates(templates);
+        }
+        fetchTemplates();
+    }, []);
 
-        setCanvasData({
-            id: canvas.id,
-            projectId: canvas.projectId,
-            nodes: canvas.nodes,
-            edges: canvas.edges,
-        });
-        setLoading(false);
-        router.push(`/projects/canvas/${project.id}`);
-    };
+    useEffect(() => {
+        if (!isUserLoading && isProjectLoading) {
+            fetchProjectData(userData?.id!);
+            analytics.trackProjectsLoaded(userData!.id);
+        }
+    }, [userData, projectData]);
+
+    if (status === 'loading' || isUserLoading) {
+        return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    }
+    if (!session) {
+        redirect('/login');
+    }
 
     return (
         <div className="min-h-screen bg-[#FDFCF8] text-black font-sans">
@@ -163,9 +191,9 @@ export default function ProjectsPage() {
                 </div>
 
                 {/* Community Blueprints */}
-                {/* <div className="mb-12">
+                <div className="mb-12">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-lg font-semibold text-gray-800">Community Blueprints</h2>
+                        <h2 className="text-lg font-semibold text-gray-800">Community Templates</h2>
                         <div className="flex gap-2">
                             <button className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50">&larr;</button>
                             <button className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50">&rarr;</button>
@@ -173,23 +201,21 @@ export default function ProjectsPage() {
                     </div>
 
                     <div className="grid grid-cols-4 gap-6">
-                        {[
-                            { title: "Banana Bench", author: "Krea", desc: "Use your own prompt to compare Nano Banana Pro versus the previous version side by side.", color: "bg-blue-900" },
-                            { title: "Mythical Creature", author: "@numanuk", desc: "Create character consistent videos of mythical creatures.", color: "bg-purple-100" },
-                            { title: "Selfie to Fine Art", author: "Krea", desc: "Upload a selfie and turn it into a stunning black and white photo and video.", color: "bg-gray-900" },
-                            { title: "Sneaker Campaign", author: "Krea", desc: "Create a poster, video, and new product shots for a whole ad campaign from a single photo.", color: "bg-green-900" },
-                        ].map((item, i) => (
-                            <div key={i} className="group cursor-pointer">
-                                <div className={`aspect-video rounded-xl ${item.color} mb-3 overflow-hidden relative`}>
+                        {templates.map((template: any, i: number) => (
+                            <button
+                                key={i}
+                                onClick={() => createNewProject(template)}
+                                className="group cursor-pointer text-left w-full"
+                            >
+                                <div className={`aspect-video rounded-xl mb-3 overflow-hidden relative ${getGradientForName(template.templateName)}`}>
                                     <div className="absolute top-3 right-3 px-2 py-1 bg-blue-500 text-white text-[10px] font-bold rounded uppercase tracking-wider">New</div>
                                 </div>
-                                <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                                <p className="text-sm text-gray-500 mb-2 line-clamp-2">{item.desc}</p>
-                                <p className="text-xs text-gray-400 font-medium">By {item.author}</p>
-                            </div>
+                                <h3 className="font-semibold text-gray-900 mb-1">{template.templateName}</h3>
+                                <p className="text-xs text-gray-400 font-medium">By {template.user.name}</p>
+                            </button>
                         ))}
                     </div>
-                </div> */}
+                </div>
 
                 {/* Recent Projects */}
                 <div>

@@ -38,7 +38,7 @@ export default function Paywall() {
             {/* <div className="w-full max-w-4xl h-[450px] bg-gradient-to-tr from-white via-gray-100 to-gray-400 rounded-3xl shadow-2xl overflow-hidden border border-white/50 flex flex-col lg:flex-row"> */}
 
             <div
-                className="w-full max-w-4xl h-[450px] rounded-3xl shadow-2xl overflow-hidden border border-white/50 flex flex-col lg:flex-row bg-cover bg-center"
+                className="w-full max-w-4xl h-auto lg:h-[450px] rounded-3xl shadow-2xl overflow-hidden border border-white/50 flex flex-col lg:flex-row bg-cover bg-center"
                 style={{ backgroundImage: "url('/assets/paywall_background.svg')" }}
             >
                 {/* Left Side: Features */}
@@ -100,7 +100,7 @@ export default function Paywall() {
                                 <div className="font-medium text-gray-900">Monthly</div>
                             </div>
                             <div className="text-right">
-                                <div className="font-normal text-sm text-gray-900">$49</div>
+                                <div className="font-normal text-sm text-gray-900">$20</div>
                                 <div className="text-base text-gray-500">/month</div>
                             </div>
                         </div>

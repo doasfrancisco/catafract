@@ -250,6 +250,7 @@ NEXT_PUBLIC_PROXY_MIXPANEL_API=https://api.mixpanel.com
      - `projects` (partition key: `/userId`)
      - `canvas` (partition key: `/projectId`)
      - `generations` (partition key: `/userId`)
+     - `tiktok_prompts` (partition key: `/userId`)
 
 ### Creating Azure Resources
 
@@ -305,6 +306,12 @@ az cosmosdb sql container create \
   --account-name catafract-cosmos \
   --database-name catafract \
   --name generations \
+  --partition-key-path /userId
+
+az cosmosdb sql container create \
+  --account-name catafract-cosmos \
+  --database-name catafract \
+  --name tiktok_prompts \
   --partition-key-path /userId
 ```
 

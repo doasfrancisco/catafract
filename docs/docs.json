@@ -113,7 +113,8 @@
               "api-reference/endpoints/auth",
               "api-reference/endpoints/image",
               "api-reference/endpoints/upload",
-              "api-reference/endpoints/projects"
+              "api-reference/endpoints/projects",
+              "api-reference/endpoints/templates"
             ]
           }
         ]

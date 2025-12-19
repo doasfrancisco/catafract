@@ -17,6 +17,7 @@ const projectsContainer = "projects";
 const canvasesContainer = "canvas";
 const generationsContainer = "generations";
 const templatesContainer = "templates";
+const tiktokPromptsContainer = "tiktok_prompts";
 
 export async function uploadToBlob(file: Buffer, filename: string, mimeType: string): Promise<string> {
   const containerClient = blobServiceClient.getContainerClient(containerName);
@@ -165,4 +166,34 @@ export async function getCanvas(projectId: string) {
     console.log("Error finding canvas:", error);
     return null;
   }
+}
+
+export async function getTiktokPrompt(userId: string) {
+  const database = cosmosClient.database(databaseName);
+  const container = database.container(tiktokPromptsContainer);
+
+  try {
+    const { resources } = await container.items.query({
+      query: "SELECT * FROM c WHERE c.userId = @userId",
+      parameters: [{ name: "@userId", value: userId }]
+    }).fetchAll();
+
+    if (resources.length > 0) {
+      console.log("Found tiktok prompt:", resources[0]);
+      return resources[0];
+    }
+
+    return null;
+  } catch (error) {
+    console.log("Error finding tiktok prompt:", error);
+    return null;
+  }
+}
+
+export async function saveTiktokPrompt(data: any) {
+  const database = cosmosClient.database(databaseName);
+  const container = database.container(tiktokPromptsContainer);
+
+  const { resource } = await container.items.upsert(data);
+  return resource;
 }

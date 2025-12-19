@@ -11,6 +11,12 @@ import { LuWorkflow } from "react-icons/lu";
 import { FaTiktok } from "react-icons/fa";
 import { useRouter } from 'next/navigation';
 
+const TIKTOK_ALLOWED_USERS = [
+    '8a017b14-f44f-4d08-9be7-6841036bdb05',
+    'e4e7ad8a-f0be-43c3-b324-57790e1da323',
+    '0df853b7-2b89-47cf-bb9f-0632f1286353'
+];
+
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
     const { data: session, status } = useSession();
     const { userData, isUserLoading } = useUserStore();
@@ -56,12 +62,14 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
                     >
                         <LuWorkflow className="w-5 h-5 text-gray-600" />
                     </button>
-                    <button
-                        onClick={() => router.push('/tiktok')}
-                        className={`p-2 rounded-md transition-colors ${pathname.startsWith('/tiktok') ? 'bg-white' : 'hover:bg-white'}`}
-                    >
-                        <FaTiktok className="w-5 h-5 text-gray-600" />
-                    </button>
+                    {userData?.id && TIKTOK_ALLOWED_USERS.includes(userData.id) && (
+                        <button
+                            onClick={() => router.push('/tiktok')}
+                            className={`p-2 rounded-md transition-colors ${pathname.startsWith('/tiktok') ? 'bg-white' : 'hover:bg-white'}`}
+                        >
+                            <FaTiktok className="w-5 h-5 text-gray-600" />
+                        </button>
+                    )}
                 </div>
 
                 {/* Right Side */}
@@ -111,7 +119,6 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
                 </div>
             </div>
 
-            {/* Page Content */}
             {children}
         </div>
     );

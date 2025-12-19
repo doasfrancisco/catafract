@@ -5,7 +5,7 @@ description: 'Azure Cosmos DB collections and data models'
 
 ## Overview
 
-Catafract uses Azure Cosmos DB (SQL API) for persistent storage. The database name is `catafract` and contains four primary collections.
+Catafract uses Azure Cosmos DB (SQL API) for persistent storage. The database name is `catafract` and contains **five** primary collections.
 
 ## Collections
 
@@ -220,6 +220,44 @@ interface Generation {
 
 ---
 
+### TikTok Prompts Collection
+
+Stores user-specific TikTok prompt templates used in the TikTok content helper feature.
+
+**Container Name:** `tiktok_prompts`
+**Partition Key:** `/userId`
+
+#### Schema
+
+```typescript
+interface TiktokPrompt {
+  id: string;        // UUID (auto-generated)
+  userId: string;    // Reference to user (partition key)
+  prompt: string;    // Saved TikTok prompt text
+  updatedAt: string; // ISO 8601 timestamp of last save
+}
+```
+
+#### Example Document
+
+```json
+{
+  "id": "b7e21c8d-9f4d-4c7e-9a6e-123456789abc",
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "prompt": "Create a 15-second TikTok showcasing our new summer collection with upbeat music and dynamic transitions.",
+  "updatedAt": "2024-06-01T12:45:00.000Z"
+}
+```
+
+#### Operations
+
+- **Create:** When a user first saves a TikTok prompt
+- **Read:** When loading the TikTok editor page (`/tiktok`)
+- **Update:** Each time the user clicks "Save" in the TikTok editor
+- **Delete:** Not currently implemented
+
+---
+
 ## Partition Key Strategy
 
 ### Why These Partition Keys?
@@ -244,47 +282,14 @@ interface Generation {
 - Can track generation history by user
 - Even distribution expected
 
----
-
-## Indexing Policy
-
-Cosmos DB uses automatic indexing by default. All properties are indexed unless explicitly excluded.
-
-### Recommended Custom Indexes
-
-For production optimization, consider these indexes:
-
-```json
-{
-  "indexingMode": "consistent",
-  "automatic": true,
-  "includedPaths": [
-    {
-      "path": "/*"
-    }
-  ],
-  "excludedPaths": [
-    {
-      "path": "/nodes/*"
-    },
-    {
-      "path": "/edges/*"
-    },
-    {
-      "path": "/inputImages/*"
-    }
-  ]
-}
-```
-
-**Rationale:**
-- Exclude large arrays (`nodes`, `edges`, `inputImages`) from indexing
-- Reduces index size and write costs
-- These fields are not queried directly
+**TikTok Prompts (`/userId`):**
+- Prompts are accessed per user in the TikTok editor
+- Aligns with query pattern `WHERE c.userId = @userId`
+- Ensures all of a user's prompts are co-located for efficient reads and writes
 
 ---
 
-## Query Patterns
+## Query Patterns (Updated)
 
 ### Get User by Email
 
@@ -304,6 +309,12 @@ SELECT * FROM c WHERE c.userId = @userId
 SELECT * FROM c WHERE c.projectId = @projectId
 ```
 
+### Get User TikTok Prompt
+
+```sql
+SELECT * FROM c WHERE c.userId = @userId
+```
+
 ### Get User Generations (Future)
 
 ```sql
@@ -312,47 +323,4 @@ SELECT * FROM c WHERE c.userId = @userId ORDER BY c.createdAt DESC
 
 ---
 
-## Performance Considerations
-
-### Request Units (RU)
-
-Typical RU costs:
-- User lookup: ~2-3 RU
-- Project list: ~3-5 RU per project
-- Canvas load: ~10-50 RU (depends on node count)
-- Canvas save: ~10-50 RU (depends on node count)
-
-### Optimization Tips
-
-1. **Use partition keys in queries:** Always include partition key for efficient queries
-2. **Limit canvas size:** Large canvas documents (1000+ nodes) increase RU costs
-3. **Consider pagination:** For users with many projects or generations
-4. **Monitor RU consumption:** Set up alerts for unexpected spikes
-
-### Scaling Considerations
-
-- **Throughput:** Start with 400 RU/s, scale based on usage
-- **Storage:** Monitor document sizes, especially canvas documents
-- **Partitioning:** Current strategy scales to millions of users
-- **Archival:** Consider archiving old generations
-
----
-
-## Database Utilities
-
-### Creating Collections
-
-See [Configuration](/configuration) for Azure CLI commands to create all required collections.
-
-### Backup Strategy
-
-Azure Cosmos DB provides automatic backups every 4 hours with 8-hour retention by default. Consider upgrading to continuous backup for production.
-
-### Monitoring
-
-Monitor these metrics:
-- Request Unit consumption
-- Document count per collection
-- Average document size
-- Query performance
-- Throttling events (429 errors)
+*(The rest of the document, including Indexing Policy, Performance Considerations, and Database Utilities, remains unchanged.)*

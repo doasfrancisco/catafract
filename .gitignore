@@ -3,6 +3,7 @@
 .env
 temp.tsx
 x.tsx
+.claude
 
 # dependencies
 /node_modules

@@ -48,7 +48,7 @@ import { ImageNode, ImageNodeData } from './types';
 import { analytics } from '@/lib/mixpanel';
 import { compressWithJsquash } from '@/lib/imageCompress';
 import { useUserStore } from "@/app/store/useUserStore";
-import { useCanvasStore } from "../../canvas/[id]/store/useCanvasStore";
+import { useCanvasStore } from "./store/useCanvasStore";
 import heic2any from "heic2any";
 
 const nodeTypes: NodeTypes = {

@@ -15,6 +15,8 @@ The Upload node allows you to add images to your canvas workflow. These images c
 
 **Features:**
 - Upload images from your local computer
+- **Support for JPEG, PNG, and HEIC/HEIF files** (HEIC files are automatically converted to PNG)
+- **Client-side compression for large images** (files larger than ~3.5 MB are resized & compressed before upload for faster transfers)
 - Automatic upload to Azure Blob Storage
 - Dynamic sizing based on image aspect ratio
 - Output handle to connect to other nodes
@@ -33,8 +35,8 @@ The Upload node allows you to add images to your canvas workflow. These images c
 **How to Add:**
 1. Right-click on the canvas
 2. Select "Upload" from the context menu
-3. Choose an image file from your computer
-4. The image will be uploaded and displayed in the node
+3. Choose an image file from your computer (JPEG, PNG, or HEIC)
+4. The image will be converted/compressed if necessary and then uploaded. It will automatically appear in the node.
 
 **API Endpoint:** `/api/upload`
 
